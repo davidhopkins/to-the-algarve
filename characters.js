@@ -48,7 +48,7 @@ window.CHARACTERS = {
   /* Day 2  · Wed 23 Sept — the North Sea, and bitter about being the other one */
   "The Other Cloud": {
     lines: [
-      "I'm the other one. Nobody ever asks the other one. {days}, since you ask."
+      "Cloudy says you're officially {percent} percent nearly there!"
     ],
     pokes: ["Typical.", "Don't mind me.", "*sulks*"]
   },
@@ -184,7 +184,7 @@ window.CHARACTERS = {
   /* Day 19 · Sat 10 Oct — Faro. Arrival day. */
   "The Stork": {
     /* replaces the daily line the moment you land */
-    arrival: "That's {dest}! {both}, shuffle up - there's room on the wall for you.",
+    arrival: "That's the {dest}! {both}, shuffle up - there's room on the wall for you.",
     lines: [
       "I nest on the old walls at Faro. {days} and I'll shuffle up for you."
     ],
