@@ -368,6 +368,7 @@ function ensureVoice(name){
   const lines = Array.isArray(v.lines) ? v.lines.filter(Boolean) : [];
   const pokes = Array.isArray(v.pokes) ? v.pokes.filter(Boolean) : [];
   VOICES[name] = {
+    ...v,                                  /* keep extras, e.g. the stork's `arrival` */
     lines: lines.length ? lines : [`(${name} hasn't been given anything to say yet - see characters.js)`],
     pokes: pokes.length ? pokes : ["..."]
   };
@@ -838,7 +839,8 @@ function fillTemplate(str, t, p){
     .replace(/\{both\}/g,  a.name + " and " + b.name)
     .replace(/\{days\}/g,  days === 0 ? "less than a day"
                         : days === 1 ? "one day" : days + " days")
-    .replace(/\{percent\}/g, Math.floor(p * 100));
+    .replace(/\{percent\}/g, Math.floor(p * 100))
+    .replace(/\{dest\}/g,  CONFIG.dest.name);
 }
 
 /* ===================================================================
@@ -1536,8 +1538,10 @@ function render(){
     renderedDay = d;
     if (arrived){
       todayVoice = "The Stork";
-      todayLine  = `That's Algarve. ${CONFIG.travellers[0].name} and ${CONFIG.travellers[1].name}, ` +
-                   `shuffle up - there's room on the wall. Welcome to the Algarve.`;
+      /* the big moment is written in characters.js, like everything else */
+      todayLine  = fillTemplate(
+        (VOICES["The Stork"] && VOICES["The Stork"].arrival) ||
+        "That's {dest}! {both}, you made it.", t, p);
       todayHint  = "That's the last of them. Go and enjoy it.";
     } else {
       const pick = scheduleFor(Math.max(0, d));
