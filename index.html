@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e8cfa4">
+<meta name="description" content="Two flamingos are paddling to the Algarve. Here is how far they have got.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="To The Algarve">
+<title>Two Flamingos, One Lilo &middot; To The Algarve</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232fb9c4'/%3E%3Cellipse cx='32' cy='45' rx='23' ry='9' fill='%23ff7ba8'/%3E%3Cpath d='M30 39 C20 33 16 22 23 14' stroke='%23ff9ec2' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='13' r='6' fill='%23ff9ec2'/%3E%3Cpath d='M17 12 L8 15 L17 18 Z' fill='%23ffc23c'/%3E%3C/svg%3E">
+
+<style>
+  @font-face{
+    font-family:"Shantell Sans";
+    src:url("assets/fonts/shantell-sans.woff2") format("woff2");
+    font-weight:400 700;
+    font-display:swap;
+  }
+
+  :root{
+    /* paper and ink */
+    --paper:#fbf1da;
+    --paper-2:#f6e7c8;
+    --desk:#e6cc9f;
+    --desk-2:#dcbd88;
+    --ink:#4a3728;
+    --ink-soft:#8a7256;
+    --coast:#c09354;
+
+    /* sea */
+    --shelf:#7fe0e4;
+
+    /* holiday accents */
+    --coral:#ff6b57;
+    --pink-soft:#ffa9c6;
+    --pink-deep:#e8437d;
+    --mustard:#ffc23c;
+    --leaf:#4f9e44;
+
+    --font:"Shantell Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+
+  body{
+    background:
+      radial-gradient(1000px 600px at 50% -5%, #f2e0ba 0%, transparent 62%),
+      linear-gradient(170deg,var(--desk) 0%,var(--desk-2) 100%);
+    background-color:var(--desk);
+    color:var(--ink);
+    font-family:var(--font);
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    padding:clamp(8px,2vw,22px);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .stage{
+    position:relative;
+    width:100%;
+    /* a sane starting value; fitChart() then measures the real chrome and sets
+       max-width exactly, so the whole scene always fits without scrolling */
+    max-width:min(100%, calc((100vh - 240px) * 0.811));
+    display:flex;flex-direction:column;gap:12px;
+  }
+
+  /* ---------- the chart ---------- */
+  .chart{
+    position:relative;
+    background:var(--paper);
+    padding:clamp(7px,1.1vw,12px);
+    border-radius:9px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.7) inset,
+      0 18px 40px rgba(90,62,30,.26),
+      0 2px 6px rgba(90,62,30,.18);
+  }
+  .chart svg{display:block;width:100%;height:auto;border-radius:3px}
+
+  /* ---------- ink on the chart ---------- */
+  .land{fill:var(--paper-2);stroke:var(--coast);stroke-width:1.6;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+  .shelf{fill:none;stroke:var(--shelf);stroke-width:9;stroke-linejoin:round;opacity:.55}
+  .route-todo{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-dasharray:1 9;stroke-linecap:round;opacity:.40}
+  .route-done{fill:none;stroke:var(--pink-deep);stroke-width:3.6;stroke-linecap:round}
+  .place-label{fill:var(--ink);font-size:15px;font-weight:700;letter-spacing:.03em}
+  .sea-label{fill:#0b6a72;font-size:14px;font-weight:600;opacity:.7;letter-spacing:.1em}
+
+  .ink{stroke:var(--ink);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+  .ink-thin{stroke:var(--ink);stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round;fill:none;vector-effect:non-scaling-stroke}
+
+  /* a creature you can poke */
+  .poke{cursor:pointer;outline:none}
+  .poke .wob{transform-box:fill-box;transform-origin:center bottom}
+  .poke:hover .wob,.poke:focus-visible .wob{animation:nudge .5s ease-in-out}
+  .poke.talking .wob{animation:wobble .65s ease-in-out}
+  @keyframes nudge{50%{transform:translateY(-3px) rotate(-3deg)}}
+  @keyframes wobble{
+    20%{transform:translateY(-7px) rotate(-8deg)}
+    50%{transform:translateY(-2px) rotate(7deg)}
+    78%{transform:translateY(-4px) rotate(-3deg)}
+  }
+
+  /* idle life */
+  .drift{transform-box:fill-box;transform-origin:center;animation:drift 7s ease-in-out infinite}
+  .drift-slow{transform-box:fill-box;transform-origin:center;animation:drift 11s ease-in-out infinite}
+  @keyframes drift{50%{transform:translateY(-5px)}}
+  .spin{transform-box:fill-box;transform-origin:center;animation:spin 46s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .blinkeye{animation:blinkeye 6.5s steps(1) infinite}
+  @keyframes blinkeye{0%,96%{opacity:1}97%,100%{opacity:0}}
+  .spout{transform-box:fill-box;transform-origin:center bottom;animation:spout 5s ease-in-out infinite}
+  @keyframes spout{0%,55%,100%{transform:scaleY(.25);opacity:.35}70%{transform:scaleY(1);opacity:1}}
+  .drip{animation:drip 2.6s linear infinite}
+  @keyframes drip{0%{transform:translateY(-2px);opacity:0}25%{opacity:1}100%{transform:translateY(13px);opacity:0}}
+
+  .lilo-label{fill:var(--ink);font-size:12px;font-weight:700;text-anchor:middle;letter-spacing:.05em}
+
+  /* ---------- countdown tag ---------- */
+  .tag{
+    background:var(--paper);
+    border:2.5px solid var(--ink);
+    border-radius:14px;
+    padding:10px 16px 12px;
+    box-shadow:4px 5px 0 rgba(74,55,40,.20);
+    text-align:center;
+    align-self:center;
+  }
+  .tag .num{
+    display:block;font-size:clamp(38px,8.6vw,64px);font-weight:700;line-height:.94;
+    color:var(--coral);
+  }
+  .tag .cap{
+    display:block;font-size:clamp(10.5px,1.55vw,13.5px);font-weight:700;
+    letter-spacing:.12em;margin-top:5px;
+  }
+  .tag .sub{display:block;font-size:clamp(11px,1.5vw,13.5px);color:var(--ink-soft);margin-top:4px}
+  .tag.landed .num{font-size:clamp(24px,5vw,38px);color:var(--leaf)}
+
+  @media (min-width:760px) and (min-height:640px){
+    .tag{position:absolute;left:3.4%;top:2.8%;z-index:4;transform:rotate(-2.2deg);align-self:auto;text-align:left}
+  }
+
+  /* ---------- voyage bar ---------- */
+  .voyage{
+    display:flex;align-items:center;gap:10px;
+    background:var(--paper);border:2.5px solid var(--ink);border-radius:99px;
+    padding:8px 15px;box-shadow:3px 4px 0 rgba(74,55,40,.18);
+  }
+  .voyage .end{font-size:clamp(11px,1.5vw,13.5px);font-weight:700;white-space:nowrap}
+  .voyage .end.r{color:var(--pink-deep)}
+  .rope{position:relative;flex:1;height:14px;min-width:40px}
+  .rope::before{
+    content:"";position:absolute;left:0;right:0;top:50%;
+    border-top:3px dotted rgba(74,55,40,.36);
+  }
+  .rope i{
+    position:absolute;left:0;top:50%;width:0;
+    border-top:3.5px solid var(--pink-deep);transition:width .4s linear;
+  }
+  .rope .marker{
+    position:absolute;top:50%;left:0;width:26px;height:26px;margin:-14px 0 0 -13px;
+    transition:left .4s linear;
+  }
+  .voyage .pct{font-size:clamp(11px,1.5vw,13.5px);font-weight:700;color:var(--coral);white-space:nowrap}
+
+  @media (min-width:760px) and (min-height:640px){
+    /* pinned across the chart's bottom edge, so it hides as little map as possible */
+    .voyage{position:absolute;left:7%;right:7%;bottom:-19px;z-index:4}
+  }
+
+  /* ---------- speech bubble ----------
+     On a phone the chart is only ~355px wide, and a bubble wide enough to read
+     cannot avoid covering the flamingos - so below 760px it becomes a caption
+     card under the chart instead, and the speaker is marked on the map.        */
+  .bubble{
+    background:#fffaf0;border:2.5px solid var(--ink);border-radius:16px;
+    padding:10px 13px 11px;
+    box-shadow:4px 5px 0 rgba(74,55,40,.18);
+  }
+  .bubble .who{
+    font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--coral);margin-bottom:4px;
+  }
+  .bubble .said{font-size:clamp(13.5px,1.6vw,15.5px);line-height:1.42}
+  .bubble .hint{
+    font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-soft);margin-top:7px;opacity:.75;
+  }
+
+  /* .floating is set by fitChart() once the chart is genuinely wide enough to
+     host a floating bubble without it swamping the map. */
+  .stage.floating .bubble{
+      position:absolute;z-index:6;
+      width:min(46%,300px);
+      --tail:26px;
+      opacity:0;transform:scale(.92);
+      transition:opacity .22s ease, transform .22s cubic-bezier(.2,1.3,.4,1);
+      pointer-events:none;
+  }
+  .stage.floating .bubble.show{opacity:1;transform:scale(1)}
+  .stage.floating .bubble.far::before,.stage.floating .bubble.far::after{display:none}
+  .stage.floating .bubble::before,.stage.floating .bubble::after{content:"";position:absolute;width:0;height:0;border-style:solid}
+  .stage.floating .bubble.below::before{bottom:-16px;left:var(--tail);border-width:16px 13px 0 0;border-color:var(--ink) transparent transparent transparent}
+  .stage.floating .bubble.below::after{bottom:-11.5px;left:calc(var(--tail) + 2px);border-width:12px 9px 0 0;border-color:#fffaf0 transparent transparent transparent}
+  .stage.floating .bubble.above::before{top:-16px;left:var(--tail);border-width:0 13px 16px 0;border-color:transparent transparent var(--ink) transparent}
+  .stage.floating .bubble.above::after{top:-11.5px;left:calc(var(--tail) + 2px);border-width:0 9px 12px 0;border-color:transparent transparent #fffaf0 transparent}
+
+  /* the stage curtain, and drawing it back when the flamingos arrive */
+  .cover{pointer-events:none}
+  .cover > g > g{transform-box:fill-box}
+  .cover .drape-l{transform-origin:left center}
+  .cover .drape-r{transform-origin:right center}
+  .cover .drape-rail{transform-origin:center top}
+  .cover.gone{display:none}
+  .cover.open .drape-l{animation:drapeL .95s cubic-bezier(.4,0,.3,1) forwards}
+  .cover.open .drape-r{animation:drapeR .95s cubic-bezier(.4,0,.3,1) forwards}
+  .cover.open .drape-rail{animation:railUp .95s ease-in .35s forwards}
+  @keyframes drapeL{to{transform:translateX(-11px) scaleX(.12);opacity:0}}
+  @keyframes drapeR{to{transform:translateX(11px) scaleX(.12);opacity:0}}
+  @keyframes railUp{to{transform:translateY(-16px) scaleY(.4);opacity:0}}
+  .art-hidden{visibility:hidden}
+  .just-revealed{animation:pop .6s cubic-bezier(.2,1.5,.4,1) .15s backwards}
+  @keyframes pop{from{transform:scale(.4);opacity:0}}
+
+  /* whoever is talking keeps gently bobbing, so you can find them on the chart */
+  .speaking .wob{transform-box:fill-box;transform-origin:center bottom;animation:talking 2.6s ease-in-out infinite}
+  @keyframes talking{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-4px) rotate(-4deg)}65%{transform:translateY(-1px) rotate(3deg)}}
+
+  /* ---------- arrival ---------- */
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:20;overflow:hidden}
+  .confetti i{position:absolute;top:-16px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(112vh) rotate(700deg);opacity:.2}}
+
+  footer{text-align:center;font-size:11px;letter-spacing:.05em;color:#9c7f55}
+  @media (min-width:760px) and (min-height:640px){ footer{display:none} }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <div class="tag" id="tag">
+    <span class="num" id="tagNum">&mdash;</span>
+    <span class="cap" id="tagCap">DAYS UNTIL THE ALGARVE</span>
+    <span class="sub" id="tagSub">&mdash;</span>
+  </div>
+
+  <div class="chart" id="chart">
+    <svg id="map" role="img" aria-labelledby="mapTitle mapDesc">
+      <title id="mapTitle">An illustrated chart of the paddle from London to Algarve</title>
+      <desc id="mapDesc">A hand-drawn sea chart of western Europe. Two flamingos on an inflatable lilo paddle a dotted route from London to Algarve in the Algarve, past sea monsters, whales and a pirate ship.</desc>
+      <defs>
+        <pattern id="waves" width="36" height="24" patternUnits="userSpaceOnUse">
+          <path d="M3 15 q5.5 -6.5 11 0 q5.5 6.5 11 0" fill="none"
+                stroke="#ffffff" stroke-opacity=".20" stroke-width="1.7" stroke-linecap="round"/>
+        </pattern>
+        <linearGradient id="seaG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#34c0cb"/><stop offset="1" stop-color="#1d8f9c"/>
+        </linearGradient>
+        <linearGradient id="liloG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffc0d8"/><stop offset="1" stop-color="#ef5f92"/>
+        </linearGradient>
+      </defs>
+
+      <g id="gSea"></g>
+      <g id="gShelf"></g>
+      <g id="gLand"></g>
+      <g id="gScenery"></g>
+      <g id="gRoute"></g>
+      <g id="gPlaces"></g>
+      <g id="gCraft"></g>
+    </svg>
+
+  </div>
+
+  <div class="bubble" id="bubble" aria-live="polite">
+    <div class="who" id="bubbleWho">&mdash;</div>
+    <div class="said" id="bubbleSaid">&mdash;</div>
+    <div class="hint" id="bubbleHint"></div>
+  </div>
+
+  <div class="voyage" id="voyage">
+    <span class="end">London</span>
+    <div class="rope">
+      <i id="ropeFill"></i>
+      <span class="marker" id="ropeMarker">
+        <svg viewBox="0 0 26 26" aria-hidden="true">
+          <ellipse cx="13" cy="17" rx="11" ry="5.4" fill="#ef5f92" stroke="#4a3728" stroke-width="1.6"/>
+          <path d="M11 13 C7 10 6 6 9.5 3.5" stroke="#ffa9c6" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+          <circle cx="9" cy="3.4" r="2.6" fill="#ffa9c6" stroke="#4a3728" stroke-width="1.1"/>
+          <path d="M6.6 3 L3.4 4.2 L6.6 5.2 Z" fill="#ffc23c" stroke="#4a3728" stroke-width=".9"/>
+        </svg>
+      </span>
+    </div>
+    <span class="end r">Algarve</span>
+    <span class="pct" id="voyagePct">0%</span>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script src="characters.js"></script>
+<script>
+"use strict";
+
+/* ===================================================================
+   CONFIG - the only block you should need to edit
+   =================================================================== */
+const CONFIG = {
+  anchor:    "2026-09-22T00:00:00",   // 0% - the paddle begins
+  departure: "2026-10-10T00:00:00",   // 100% - the holiday begins
+
+  origin: { name:"London", lat: 51.148, lon: -0.190 },
+  dest:   { name:"Algarve",   lat: 37.017, lon: -7.933 },
+
+  travellers: [
+    { name:"David", accessory:"shades" },
+    { name:"Freya", accessory:"hat"    }
+  ],
+
+  map: { lonMin:-19, lonMax:9, latMin:34, latMax:58 },
+
+  // sea waypoints, so the lilo never paddles across France
+  waypoints: [
+    [-1.00, 50.30], [-4.60, 49.30], [-6.60, 48.00], [-8.20, 45.40],
+    [-10.10, 43.10], [-9.90, 41.00], [-9.95, 38.80], [-9.30, 36.80]
+  ],
+  samplesPerLeg: 18
+};
+
+/* ===================================================================
+   VOICES - all the dialogue lives in characters.js, so the writing can be
+   edited without touching the app. One character speaks per day, chosen by
+   where the flamingos have got to; `pokes` is a separate pool, so tapping
+   around the chart can never spoil tomorrow's line.
+   =================================================================== */
+const VOICES = Object.assign({}, window.CHARACTERS || {});
+
+/* Keep the chart standing if characters.js is missing, or if a character has
+   not been written yet. Better a visible placeholder than a blank map. */
+function ensureVoice(name){
+  const v = VOICES[name] || {};
+  const lines = Array.isArray(v.lines) ? v.lines.filter(Boolean) : [];
+  const pokes = Array.isArray(v.pokes) ? v.pokes.filter(Boolean) : [];
+  VOICES[name] = {
+    lines: lines.length ? lines : [`(${name} hasn't been given anything to say yet - see characters.js)`],
+    pokes: pokes.length ? pokes : ["..."]
+  };
+}
+
+/* ===================================================================
+   GEOGRAPHY - coarse [lon,lat] outlines. Stylised, not survey-grade.
+   =================================================================== */
+const LANDMASSES = [
+  /* Great Britain */
+  [[-4.95,58.63],[-3.50,58.60],[-3.00,58.65],[-2.00,57.70],[-2.10,57.15],[-2.60,56.30],[-1.80,55.90],
+   [-1.40,55.00],[-1.10,54.60],[-0.20,54.15],[0.10,53.60],[0.30,52.90],[1.30,52.95],[1.75,52.48],
+   [1.28,51.95],[0.90,51.50],[1.40,51.38],[1.36,51.13],[0.60,50.85],[-0.80,50.75],[-1.10,50.78],
+   [-2.45,50.60],[-3.65,50.22],[-5.20,49.96],[-5.71,50.07],[-4.10,51.20],[-3.00,51.20],[-3.20,51.47],
+   [-4.00,51.60],[-5.30,51.88],[-4.70,52.10],[-4.10,52.40],[-4.05,52.72],[-4.75,52.80],[-4.30,53.30],
+   [-3.00,53.40],[-3.05,54.10],[-3.60,54.90],[-5.00,54.85],[-4.90,55.50],[-5.70,55.30],[-5.60,56.40],
+   [-5.90,56.60],[-6.20,56.72],[-5.80,57.00],[-5.80,57.40],[-5.20,57.90],[-5.30,58.25]],
+
+  /* Ireland */
+  [[-7.40,55.38],[-5.90,55.20],[-5.50,54.70],[-5.55,54.35],[-6.25,54.00],[-6.10,53.35],[-6.05,52.90],
+   [-6.35,52.25],[-7.10,52.10],[-8.30,51.75],[-9.80,51.45],[-10.30,52.10],[-9.70,52.60],[-9.00,53.20],
+   [-9.90,53.80],[-8.60,54.30],[-8.50,54.60],[-8.50,55.20]],
+
+  /* France + Low Countries + Iberia */
+  [[1.85,50.95],[3.15,51.35],[4.10,51.45],[4.60,52.45],[5.30,53.05],[6.60,53.45],[9.90,53.60],
+   [9.90,43.00],[6.50,43.10],[5.35,43.30],[4.85,43.35],[3.60,43.30],[3.05,42.55],[2.15,41.40],
+   [0.85,40.72],[-0.35,39.45],[-0.50,38.35],[-1.00,37.60],[-2.45,36.83],[-4.42,36.72],[-5.60,36.00],
+   [-6.30,36.53],[-7.40,37.18],[-7.93,37.02],[-8.67,37.10],[-8.99,37.02],[-8.87,37.95],[-9.15,38.70],
+   [-9.50,38.78],[-9.38,39.35],[-8.75,40.64],[-8.68,41.15],[-8.85,41.90],[-8.85,42.60],[-9.28,42.90],
+   [-8.40,43.37],[-5.66,43.55],[-3.80,43.46],[-1.98,43.32],[-1.55,43.48],[-1.25,44.65],[-1.05,45.60],
+   [-1.15,46.16],[-2.20,47.25],[-3.10,47.55],[-4.75,48.04],[-4.78,48.45],[-4.30,48.70],[-3.05,48.80],
+   [-2.02,48.65],[-1.60,48.85],[-1.85,49.30],[-1.62,49.68],[-1.25,49.45],[-0.90,49.35],[0.10,49.50],
+   [1.08,49.92],[1.60,50.72]],
+
+  /* North Africa */
+  [[-5.90,35.90],[-5.30,35.90],[-3.90,35.25],[-2.95,35.29],[-1.60,35.40],[-0.65,35.72],[1.00,36.50],
+   [3.06,36.78],[5.07,36.75],[7.00,37.05],[9.90,37.20],[9.90,30.00],[-9.90,30.00],[-9.24,32.30],
+   [-7.62,33.60],[-6.84,34.02],[-6.30,35.20]]
+];
+
+/* ===================================================================
+   THE CAST AND SCENERY - every item is placed by lon/lat and drawn
+   around its own local origin, so it lands in the right place.
+   =================================================================== */
+const DRAW = {
+
+  /* ---------- weather ---------- */
+  sun: () => `
+    <g class="spin">
+      ${[0,45,90,135,180,225,270,315].map(a =>
+        `<path class="ink" d="M0 -26 L3.4 -35 L-3.4 -35 Z" fill="var(--mustard)" transform="rotate(${a})"/>`).join("")}
+    </g>
+    <circle class="ink" cx="0" cy="0" r="21" fill="var(--mustard)"/>
+    <path class="ink-thin" d="M-12 4 q12 11 24 0"/>
+    <rect class="ink" x="-15" y="-10" width="12" height="9" rx="3.5" fill="#2b2b2b"/>
+    <rect class="ink" x="3" y="-10" width="12" height="9" rx="3.5" fill="#2b2b2b"/>
+    <path class="ink-thin" d="M-3 -7 h6"/>`,
+
+  rainCloud: () => `
+    <g class="drift">
+      <path class="ink" fill="#b9c6d2" d="M-30 6 a11 11 0 0 1 3 -21 a15 15 0 0 1 27 -7 a13 13 0 0 1 21 9 a10 10 0 0 1 -5 19 Z"/>
+      <circle cx="-11" cy="-6" r="2" fill="#4a3728"/>
+      <circle cx="3" cy="-6" r="2" fill="#4a3728"/>
+      <path class="ink-thin" d="M-12 3 q8 -5 16 0"/>
+      <g class="drip"><path class="ink-thin" d="M-18 10 v7" stroke="#4a90c4"/></g>
+      <g class="drip" style="animation-delay:.7s"><path class="ink-thin" d="M-4 11 v7" stroke="#4a90c4"/></g>
+      <g class="drip" style="animation-delay:1.4s"><path class="ink-thin" d="M10 10 v7" stroke="#4a90c4"/></g>
+    </g>`,
+
+  cloud: () => `
+    <g class="drift-slow">
+      <path class="ink" fill="#fffdf6" opacity=".95"
+        d="M-26 5 a10 10 0 0 1 3 -19 a13 13 0 0 1 24 -6 a11 11 0 0 1 18 8 a9 9 0 0 1 -4 17 Z"/>
+    </g>`,
+
+  /* ---------- sea creatures ---------- */
+  seaMonster: () => `
+    <g class="drift">
+      <path class="ink-thin" d="M-52 15 q9 -9 18 0 q9 9 18 0 q9 -9 18 0" stroke="#0b6a72"/>
+      <path class="ink" fill="#4bb96b" d="M-46 9 q8 -16 16 0 Z"/>
+      <path class="ink" fill="#4bb96b" d="M-24 9 q8 -18 16 0 Z"/>
+      <path class="ink" fill="#4bb96b" d="M4 11 q-5 -23 14 -27 q21 -4 23 12 q2 15 -13 17 q11 2 9 -7"/>
+      <path class="ink" fill="#78d98f" d="M21 -23 l5 -12 l8 10 Z"/>
+      <circle class="blinkeye" cx="29" cy="-13" r="2.7" fill="#4a3728"/>
+      <path class="ink-thin" d="M35 -4 q6 2 8 -3"/>
+    </g>`,
+
+  kraken: () => `
+    <g class="drift-slow">
+      <path class="ink" fill="#9b6fc4" d="M-22 16 q-6 -26 8 -32 q8 -3 6 6 q-2 8 -6 26 Z"/>
+      <path class="ink" fill="#9b6fc4" d="M0 16 q2 -32 18 -34 q9 -1 4 8 q-6 9 -10 26 Z"/>
+      <path class="ink" fill="#b98fd8" d="M18 16 q10 -18 22 -12 q7 4 -1 8 q-8 4 -12 6 Z"/>
+      <circle cx="-14" cy="-8" r="2.2" fill="#f3e0ff"/><circle cx="-6" cy="-16" r="2" fill="#f3e0ff"/>
+      <circle cx="6" cy="-10" r="2.2" fill="#f3e0ff"/><circle cx="12" cy="-20" r="2" fill="#f3e0ff"/>
+    </g>`,
+
+  whale: () => `
+    <g class="drift">
+      <g class="spout"><path class="ink-thin" d="M-6 -20 v-15 M-13 -18 v-10 M1 -18 v-10" stroke="#d8f6fa"/></g>
+      <path class="ink" fill="#5c8fd6" d="M-34 2 q10 -16 32 -15 q26 1 32 13 q-8 10 -30 11 q-22 1 -34 -9 Z"/>
+      <path class="ink" fill="#5c8fd6" d="M28 0 l17 -13 l1 23 Z"/>
+      <path class="ink-thin" d="M-26 5 q14 6 30 4" stroke="#bcd8f6"/>
+      <circle class="blinkeye" cx="-17" cy="-6" r="2.4" fill="#4a3728"/>
+    </g>`,
+
+  dolphins: () => `
+    <g class="drift">
+      <path class="ink-thin" d="M-34 16 q8 -5 16 0 q8 5 16 0" stroke="#bff0f4"/>
+      <g transform="translate(-14 0)">
+        <path class="ink" fill="#5aa7d8" d="M-16 6 q-2 -16 12 -20 q14 -4 20 4 q-9 3 -14 10 q-5 7 -6 10 Z"/>
+        <path class="ink" fill="#4e97c8" d="M2 -11 l4 -10 l6 7 Z"/>
+        <path class="ink" fill="#5aa7d8" d="M-16 5 l-10 4 l9 5 Z"/>
+        <path class="ink-thin" d="M12 -11 q6 -1 9 2" fill="none"/>
+        <circle cx="10" cy="-13" r="1.5" fill="var(--ink)"/>
+      </g>
+      <g transform="translate(16 9) scale(.78)">
+        <path class="ink" fill="#7dc0e4" d="M-16 6 q-2 -16 12 -20 q14 -4 20 4 q-9 3 -14 10 q-5 7 -6 10 Z"/>
+        <path class="ink" fill="#67aed4" d="M2 -11 l4 -10 l6 7 Z"/>
+        <path class="ink" fill="#7dc0e4" d="M-16 5 l-10 4 l9 5 Z"/>
+        <circle cx="10" cy="-13" r="1.5" fill="var(--ink)"/>
+      </g>
+    </g>`,
+
+  sardines: () => {
+    const f = (x,y,s) => `<g transform="translate(${x} ${y}) scale(${s})">
+      <path class="ink-thin" fill="#bfe8f0" d="M0 0 q9 -6 18 0 q-9 6 -18 0 Z"/>
+      <path class="ink-thin" fill="#bfe8f0" d="M0 0 l-6 -4 l0 8 Z"/>
+      <circle cx="13" cy="-1" r="1.1" fill="#4a3728"/></g>`;
+    return `<g class="drift">${f(-26,-9,1)}${f(-3,-15,.9)}${f(3,2,1.05)}${f(-19,8,.85)}${f(19,-5,.95)}${f(13,12,.8)}</g>`;
+  },
+
+  pirateShip: () => `
+    <g class="drift">
+      <path class="ink" fill="#8a5a33" d="M-28 6 q28 8 56 0 l-6 11 q-22 5 -44 0 Z"/>
+      <path class="ink" d="M-6 6 v-38" fill="none"/>
+      <path class="ink" fill="#fffdf6" d="M-4 -30 q18 5 16 12 q-8 4 -16 3 Z"/>
+      <path class="ink" fill="#fffdf6" d="M-4 -12 q20 5 18 11 q-10 3 -18 2 Z"/>
+      <path class="ink" fill="#2b2b2b" d="M-6 -34 l15 4 l-15 4 Z"/>
+      <circle cx="1" cy="-31" r="1.1" fill="#fff"/>
+    </g>`,
+
+  mermaid: () => `
+    <g class="drift">
+      <path class="ink" fill="#3fbf8f" d="M2 6 q12 6 10 18 q-1 8 -10 6 q8 -12 0 -24 Z"/>
+      <path class="ink" fill="#3fbf8f" d="M10 26 l15 -7 l-3 15 Z"/>
+      <path class="ink" fill="#ffd9b8" d="M-2 -8 q10 -2 10 8 q0 8 -8 8 q-8 -1 -6 -10 Z"/>
+      <circle class="ink" cx="0" cy="-16" r="8" fill="#ffd9b8"/>
+      <path class="ink" fill="#e2632f" d="M-9 -18 q2 -14 14 -12 q10 2 6 12 q-4 -7 -10 -6 q-6 1 -10 6 Z"/>
+      <path class="ink-thin" d="M-9 -16 q-8 12 -4 24" stroke="#e2632f"/>
+      <circle cx="-1" cy="-15" r="1.4" fill="#4a3728"/>
+    </g>`,
+
+  turtle: () => `
+    <g class="drift">
+      <ellipse class="ink" cx="0" cy="0" rx="19" ry="14" fill="#4f9e63"/>
+      <path class="ink-thin" d="M-8 -8 l4 8 l-4 8 M4 -9 l4 9 l-4 8 M-13 0 h26"/>
+      <circle class="ink" cx="-22" cy="-4" r="5.5" fill="#6fbe7f"/>
+      <path class="ink" fill="#6fbe7f" d="M-12 11 l-6 8 l8 -2 Z M10 11 l7 8 l-9 -2 Z M-14 -11 l-7 -7 l9 2 Z"/>
+      <circle cx="-24" cy="-5" r="1.3" fill="#4a3728"/>
+    </g>`,
+
+  crab: () => `
+    <g class="drift">
+      <ellipse class="ink" cx="0" cy="0" rx="16" ry="11" fill="#ff6b57"/>
+      <path class="ink" d="M-16 4 l-8 8 M-13 8 l-5 9 M16 4 l8 8 M13 8 l5 9" fill="none"/>
+      <path class="ink" fill="#ff6b57" d="M-16 -6 q-12 -6 -16 2 q6 6 10 2 q-6 4 0 6 q8 0 6 -10 Z"/>
+      <path class="ink" fill="#ff6b57" d="M16 -6 q12 -6 16 2 q-6 6 -10 2 q6 4 0 6 q-8 0 -6 -10 Z"/>
+      <path class="ink-thin" d="M-6 -10 v-6 M6 -10 v-6"/>
+      <circle class="ink" cx="-6" cy="-18" r="3.4" fill="#fffdf6"/>
+      <circle class="ink" cx="6" cy="-18" r="3.4" fill="#fffdf6"/>
+      <circle class="blinkeye" cx="-6" cy="-18" r="1.5" fill="#4a3728"/>
+      <circle class="blinkeye" cx="6" cy="-18" r="1.5" fill="#4a3728"/>
+    </g>`,
+
+  jellyfish: () => `
+    <g class="drift">
+      <path class="ink" fill="#d78fd8" opacity=".92" d="M-14 2 a14 12 0 0 1 28 0 q-14 5 -28 0 Z"/>
+      <path class="ink-thin" d="M-9 3 q-3 10 2 15 M-2 4 q3 11 -2 16 M6 3 q4 9 0 14" stroke="#c46fc6"/>
+    </g>`,
+
+  messageBottle: () => `
+    <g class="drift">
+      <path class="ink" fill="#9fd9c0" opacity=".92" d="M-16 -3 q0 -5 5 -5 l1 -5 h6 l1 5 q16 1 16 6 q0 5 -16 6 l-1 5 h-6 l-1 -5 q-5 -1 -5 -7 Z"/>
+      <rect class="ink" x="8" y="-4" width="5" height="8" rx="1.6" fill="#c89a5e"/>
+      <path class="ink-thin" d="M-8 -2 q8 -2 12 2" stroke="#f6e7c8"/>
+    </g>`,
+
+  seagulls: () => `
+    <g class="drift">
+      <path class="ink-thin" d="M-22 0 q6 -7 11 0 q5 -7 11 0"/>
+      <path class="ink-thin" d="M4 -11 q5 -6 9 0 q4 -6 9 0"/>
+      <path class="ink-thin" d="M-6 12 q4 -5 8 0 q3 -5 7 0"/>
+    </g>`,
+
+  compass: () => `
+    <g opacity=".7">
+      <circle class="ink-thin" cx="0" cy="0" r="25" fill="none" stroke="#0b6a72"/>
+      <circle class="ink-thin" cx="0" cy="0" r="19" fill="none" stroke="#0b6a72"/>
+      <path class="ink" fill="#ff6b57" d="M0 -24 L6 0 L0 6 L-6 0 Z"/>
+      <path class="ink" fill="#0b6a72" d="M0 24 L6 0 L0 -6 L-6 0 Z" opacity=".85"/>
+      <path class="ink-thin" d="M-24 0 L24 0" stroke="#0b6a72"/>
+      <text x="0" y="-29" text-anchor="middle" font-size="13" font-weight="700" fill="#0b6a72">N</text>
+    </g>`,
+
+  /* ---------- landmarks ---------- */
+  bigBen: () => `
+    <g>
+      <path class="ink" fill="#d8b487" d="M-9 16 h18 l-2 -34 h-14 Z"/>
+      <path class="ink" fill="#e8c9a0" d="M-11 -18 h22 l-3 -6 h-16 Z"/>
+      <circle class="ink" cx="0" cy="-30" r="7.5" fill="#fffdf6"/>
+      <path class="ink-thin" d="M0 -30 v-4.6 M0 -30 l3.8 2"/>
+      <path class="ink" fill="#c08f5e" d="M-7 -37 h14 l-7 -13 Z"/>
+      <path class="ink-thin" d="M-5 6 h10 M-5 -2 h10"/>
+    </g>`,
+
+  eiffel: () => `
+    <g>
+      <path class="ink" fill="none" d="M-12 16 q7 -18 5 -26 M12 16 q-7 -18 -5 -26"/>
+      <path class="ink" fill="#a8825a" d="M-7 -10 h14 l-2 -12 h-10 Z"/>
+      <path class="ink-thin" d="M-9 2 h18 M-7 -10 h14 M0 -22 v-11"/>
+      <path class="ink-thin" d="M-9 2 l18 -12 M9 2 l-18 -12"/>
+    </g>`,
+
+  nessie: () => `
+    <g>
+      <ellipse cx="0" cy="13" rx="34" ry="8" fill="#2f86a8" opacity=".5"/>
+      <path class="ink-thin" d="M-30 13 q8 -5 15 0 q8 5 15 0" stroke="#d8f6fa"/>
+      <g class="drift">
+        <path class="ink" fill="#6b9a52" d="M-18 11 q7 -13 14 0 Z"/>
+        <path class="ink" fill="#6b9a52" d="M2 11 q6 -11 12 0 Z"/>
+        <path class="ink" fill="#7fb063" d="M14 9 q-2 -19 8 -22 q9 -3 10 5 q1 7 -6 8 q6 3 2 9 Z"/>
+        <circle class="blinkeye" cx="26" cy="-14" r="2.1" fill="#4a3728"/>
+      </g>
+    </g>`,
+
+  pint: () => `
+    <g>
+      <path class="ink" fill="#3a2314" d="M-9 14 l-2 -20 h22 l-2 20 Z"/>
+      <path class="ink" fill="#fff6e2" d="M-11 -6 h22 l-1 -7 q-10 -4 -20 0 Z"/>
+      <path class="ink-thin" d="M11 -2 q8 2 6 8 q-2 5 -7 4" fill="none"/>
+    </g>`,
+
+  bull: () => `
+    <g>
+      <path class="ink" fill="#3b2b24"
+        d="M-24 12 q-2 -14 8 -16 q12 -3 22 1 q10 -4 16 2 q6 5 2 10 q-4 5 -12 3 l-2 6 h-5 l1 -6 q-10 1 -18 -1 l-1 7 h-5 Z"/>
+      <path class="ink" fill="#f0e2c8" d="M22 -4 q9 -10 15 -4 q-7 2 -9 7 Z"/>
+      <path class="ink" fill="#f0e2c8" d="M26 2 q11 -3 13 4 q-8 -2 -11 2 Z"/>
+      <circle cx="28" cy="-1" r="1.7" fill="#fffdf6"/>
+    </g>`,
+
+  guitar: () => `
+    <g transform="rotate(-8)">
+      <path class="ink" fill="#a06a2c" d="M-2.6 -14 h5.2 l0 -22 h-5.2 Z"/>
+      <path class="ink" fill="#7d4f1d" d="M-4 -36 h8 l1 -6 h-10 Z"/>
+      <path class="ink-thin" d="M-3.4 -40 h-3 M3.4 -40 h3 M-3.4 -37 h-3 M3.4 -37 h3"/>
+      <path class="ink" fill="#d99a45"
+            d="M0 -16 q-11 0 -11 9 q0 7 5 9 q-6 3 -6 11 q0 11 12 11 q12 0 12 -11 q0 -8 -6 -11 q5 -2 5 -9 q0 -9 -11 -9 Z"/>
+      <circle class="ink-thin" cx="0" cy="13" r="4.6" fill="#4a2c0c"/>
+      <path class="ink-thin" d="M-1.6 -14 v34 M0 -14 v34 M1.6 -14 v34" stroke-width="1"/>
+      <path class="ink-thin" d="M-5 24 h10" stroke-width="2"/>
+    </g>`,
+
+  windmill: () => `
+    <g>
+      <path class="ink" fill="#fffdf6" d="M-11 16 l3 -24 h16 l3 24 Z"/>
+      <path class="ink" fill="#c2553f" d="M-9 -8 h18 l-9 -8 Z"/>
+      <g class="spin">
+        <path class="ink" fill="#e8d5ae" d="M0 -2 l-4 -22 l8 0 Z"/>
+        <path class="ink" fill="#e8d5ae" d="M0 -2 l22 -4 l0 8 Z"/>
+        <path class="ink" fill="#e8d5ae" d="M0 -2 l4 22 l-8 0 Z"/>
+        <path class="ink" fill="#e8d5ae" d="M0 -2 l-22 4 l0 -8 Z"/>
+      </g>
+      <circle cx="0" cy="-2" r="2.4" fill="#4a3728"/>
+    </g>`,
+
+  tram: () => `
+    <g>
+      <path class="ink" fill="#e8c341" d="M-19 10 l1 -20 q19 -4 37 0 l1 20 Z"/>
+      <path class="ink-thin" fill="#cdeef4" d="M-13 -6 h10 v9 h-10 Z M3 -6 h10 v9 h-10 Z"/>
+      <circle class="ink" cx="-10" cy="12" r="3.6" fill="#3b2b24"/>
+      <circle class="ink" cx="11" cy="12" r="3.6" fill="#3b2b24"/>
+      <path class="ink-thin" d="M4 -14 l8 -10"/>
+      <text x="0" y="8" text-anchor="middle" font-size="8" font-weight="700" fill="#4a3728">28</text>
+    </g>`,
+
+  algarveArch: () => `
+    <g>
+      <path class="ink" fill="#fffdf6" d="M-17 16 v-22 q17 -12 34 0 v22 Z"/>
+      <path class="ink" fill="#34c0cb" d="M-7 16 v-14 q7 -6 14 0 v14 Z"/>
+      <path class="ink-thin" d="M-17 -4 h34"/>
+      <g class="drift">
+        <ellipse class="ink" cx="4" cy="-27" rx="8" ry="5.5" fill="#fffdf6"/>
+        <path class="ink" fill="#fffdf6" d="M10 -30 q7 -2 8 -8 q-6 1 -9 4 Z"/>
+        <circle class="ink" cx="-3" cy="-33" r="4.3" fill="#fffdf6"/>
+        <path class="ink" fill="#ff6b57" d="M-7 -34 l-10 2 l10 3 Z"/>
+        <path class="ink-thin" d="M1 -22 v6 M6 -22 v6" stroke="#ff6b57"/>
+        <circle class="blinkeye" cx="-4" cy="-34" r="1.2" fill="#4a3728"/>
+      </g>
+    </g>`,
+
+  orangeTree: () => `
+    <g>
+      <path class="ink" fill="#8a5a33" d="M-3 16 h6 l-1 -14 h-4 Z"/>
+      <circle class="ink" cx="0" cy="-6" r="14" fill="#4f9e44"/>
+      <circle class="ink-thin" cx="-6" cy="-9" r="3.2" fill="#ffc23c"/>
+      <circle class="ink-thin" cx="5" cy="-4" r="3.2" fill="#f79a2b"/>
+      <circle class="ink-thin" cx="2" cy="-13" r="2.8" fill="#ffc23c"/>
+    </g>`,
+
+  /* What an unreached character waits behind: a closed stage curtain with a
+     rail, a scalloped pelmet, and two halves that part when the flamingos draw
+     level. Kept deliberately compact - the art underneath is hidden, so the
+     curtain needn't cover it, and a wider one collides with its neighbours. */
+  curtain: () => `
+    <g>
+      <ellipse cx="0" cy="16" rx="16" ry="3.4" fill="#4a3728" opacity=".16"/>
+      <g class="drape-l">
+        <path class="ink" fill="#c0433c"
+              d="M-16 -28 h16 v41 q-4 3.5 -8 1 q-4 -2.5 -8 1.5 Z"/>
+        <path class="ink-thin" opacity=".4"
+              d="M-12.4 -26.5 q1 20 0.4 38 M-8.2 -26.5 q1 21 0.4 39 M-4 -26.5 q.7 21 0 39"/>
+      </g>
+      <g class="drape-r">
+        <path class="ink" fill="#d4544a"
+              d="M16 -28 h-16 v41 q4 3.5 8 1 q4 -2.5 8 1.5 Z"/>
+        <path class="ink-thin" opacity=".4"
+              d="M12.4 -26.5 q-1 20 -0.4 38 M8.2 -26.5 q-1 21 -0.4 39 M4 -26.5 q-.7 21 0 39"/>
+      </g>
+      <g class="drape-rail">
+        <path class="ink" fill="#a8362f"
+              d="M-16 -28 h32 v4.2 q-5.3 5 -10.7 0 q-5.3 5 -10.6 0 q-5.3 5 -10.7 0 Z"/>
+        <path class="ink" fill="#e8b34a" d="M-17.5 -33 h35 v4 h-35 Z"/>
+        <circle class="ink" cx="-18.8" cy="-31" r="2.5" fill="#e8b34a"/>
+        <circle class="ink" cx="18.8" cy="-31" r="2.5" fill="#e8b34a"/>
+      </g>
+    </g>`,
+
+  camel: () => `
+    <g>
+      <path class="ink" fill="#d6a45e"
+        d="M-22 12 l2 -12 q-4 -10 6 -12 q8 -2 14 2 q6 -8 13 -2 q5 4 1 10 l1 14 h-4 l-2 -11 q-6 2 -12 1 l-2 10 h-4 l-1 -10 q-5 0 -8 -2 l-1 12 Z"/>
+      <path class="ink" fill="#e8bb7c" d="M-14 -12 q5 -9 10 0 Z M-2 -13 q5 -10 10 0 Z"/>
+      <path class="ink" fill="#d6a45e" d="M20 -8 q9 -3 11 3 q-6 1 -9 4 Z"/>
+      <circle cx="26" cy="-6" r="1.5" fill="#4a3728"/>
+    </g>`
+};
+
+/* Where everything sits, and who can talk.
+   Positions are spaced on a loose two-column grid down the Atlantic so no two
+   creatures collide and nothing runs off the chart edge; the Iberian corner is
+   deliberately busier, the way a hand-drawn chart should be. */
+const SCENERY = [
+  /* weather */
+  { lon:-2.60,  lat:54.60, draw:"rainCloud",  s:1,    voice:"The Rain Cloud" },
+  { lon:-13.80, lat:39.68, draw:"sun",        s:1,    voice:"The Sun" },
+  { lon:4.50,   lat:54.00, draw:"cloud",      s:.8,   voice:"A Cloud" },
+  { lon:2.00,   lat:56.20, draw:"cloud",      s:.65,  voice:"The Other Cloud" },
+
+  /* the deep Atlantic - column A */
+  { lon:-13.00, lat:51.50, draw:"kraken",     s:.9,   voice:"The Kraken" },
+  { lon:-16.00, lat:50.22, draw:"seaMonster", s:1.05, voice:"The Sea Monster" },
+  { lon:-17.00, lat:46.01, draw:"dolphins",   s:.9,   voice:"The Dolphins" },
+  { lon:-16.60, lat:42.60, draw:"mermaid",    s:.9,   voice:"The Mermaid" },
+  { lon:-16.80, lat:38.50, draw:"crab",       s:.85,  voice:"The Crab" },
+  { lon:-16.90, lat:35.80, draw:"compass",    s:1,    voice:"The Compass Rose" },
+
+  /* the deep Atlantic - column B */
+  { lon:-12.40, lat:48.11, draw:"whale",      s:.92,  voice:"The Whale" },
+  { lon:-13.60, lat:43.90, draw:"pirateShip", s:.95,  voice:"The Pirate Ship" },
+  { lon:-12.30, lat:35.47, draw:"turtle",     s:.85,  voice:"The Turtle" },
+
+  /* closer in */
+  { lon:1.50,   lat:53.50, draw:"seagulls",   s:.8,   voice:"The Seagulls" },
+  { lon:-3.00,  lat:36.60, draw:"sardines",   s:1,    voice:"The Sardines" },
+
+  /* land */
+  { lon:-4.40,  lat:56.60, draw:"nessie",     s:.95,  voice:"Nessie" },
+  { lon:-7.00,  lat:52.20, draw:"pint",       s:.9,   voice:"The Pint" },
+  { lon:2.35,   lat:48.86, draw:"eiffel",     s:.95,  voice:"The Eiffel Tower" },
+  { lon:-3.40,  lat:40.40, draw:"bull",       s:.9,   voice:"The Bull" },
+  { lon:-5.60,  lat:37.60, draw:"guitar",     s:.8,   voice:"The Guitar" },
+  { lon:-7.00,  lat:40.80, draw:"windmill",   s:.88,  voice:"The Windmill" },
+  { lon:-7.40,  lat:38.95, draw:"tram",       s:.80,  voice:"The Tram" },
+  { lon:-5.60,  lat:39.60, draw:"orangeTree", s:.8,   voice:"The Orange Tree" },
+  { lon:-1.00,  lat:35.30, draw:"camel",      s:.92,  voice:"The Camel" }
+];
+
+/* sea labels, hand-lettered on the chart */
+const SEA_LABELS = [
+  { lon:-7.29, lat:51.19, text:"the Atlantic" },
+  { lon:-3.70, lat:45.00, text:"Bay of Biscay" }
+];
+
+/* ===================================================================
+   TIME - one virtual clock, so ?now / ?p / ?arrived all collapse into
+   "pretend it is this moment"
+   =================================================================== */
+const ANCHOR = new Date(CONFIG.anchor).getTime();
+const DEPART = new Date(CONFIG.departure).getTime();
+const SPAN   = DEPART - ANCHOR;
+const DAY    = 86400000;
+
+const qs = new URLSearchParams(location.search);
+let timeOffset = 0;
+(function overrides(){
+  const now = Date.now();
+  if (qs.has("arrived")) { timeOffset = DEPART - now; return; }
+  if (qs.has("p")) {
+    const p = Math.max(0, Math.min(1.2, parseFloat(qs.get("p")) || 0));
+    timeOffset = (ANCHOR + p * SPAN) - now; return;
+  }
+  if (qs.has("now")) {
+    const t = new Date(qs.get("now")).getTime();
+    if (!Number.isNaN(t)) timeOffset = t - now;
+  }
+})();
+const virtualNow = () => Date.now() + timeOffset;
+const isFaked = () => timeOffset !== 0;
+
+const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+const progress = t => clamp01((t - ANCHOR) / SPAN);
+
+function dayIndex(t){
+  const a = new Date(ANCHOR); a.setHours(0,0,0,0);
+  const b = new Date(t);      b.setHours(0,0,0,0);
+  return Math.round((b - a) / DAY);
+}
+
+/* ===================================================================
+   THE DAILY DECK - every (speaker, line) pair, shuffled once from the
+   anchor date and indexed by day. Stable all day, no repeats until the
+   deck runs dry, and the order is not the source order.
+   =================================================================== */
+function hashStr(s){
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function shuffled(arr, deck){
+  const rnd = mulberry32(hashStr(CONFIG.anchor + "::" + deck));
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i--){
+    const j = Math.floor(rnd() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+function fillTemplate(str, t, p){
+  const [a, b] = CONFIG.travellers;
+  const rnd = mulberry32(hashStr(CONFIG.anchor + "::who::" + dayIndex(t)));
+  const i = rnd() < 0.5 ? 0 : 1;
+  /* Floor, not ceiling: the countdown tag shows the whole days remaining, and a
+     character saying "13 days" beside a tag reading 12 undermines both. */
+  const days = Math.floor(Math.max(0, DEPART - t) / DAY);
+  return str
+    .replace(/\{name\}/g,  CONFIG.travellers[i].name)
+    .replace(/\{other\}/g, CONFIG.travellers[1-i].name)
+    .replace(/\{both\}/g,  a.name + " and " + b.name)
+    .replace(/\{days\}/g,  days === 0 ? "less than a day"
+                        : days === 1 ? "one day" : days + " days")
+    .replace(/\{percent\}/g, Math.floor(p * 100));
+}
+
+/* ===================================================================
+   PROJECTION - one function for coastlines, scenery, route and craft
+   =================================================================== */
+const M = CONFIG.map;
+const COS_MID = Math.cos((M.latMin + M.latMax) / 2 * Math.PI / 180);
+const VB_W = 600;
+const SCALE = VB_W / ((M.lonMax - M.lonMin) * COS_MID);
+const VB_H = Math.round((M.latMax - M.latMin) * SCALE);
+
+const project = (lon, lat) => [
+  (lon - M.lonMin) * COS_MID * SCALE,
+  (M.latMax - lat) * SCALE
+];
+
+const svg = document.getElementById("map");
+svg.setAttribute("viewBox", `0 0 ${VB_W} ${VB_H}`);
+
+const el = (tag, attrs, parent) => {
+  const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+};
+const toPath = pts => pts.map((p,i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+
+/* sea + wave hatching */
+el("rect", { x:0, y:0, width:VB_W, height:VB_H, fill:"url(#seaG)" }, document.getElementById("gSea"));
+el("rect", { x:0, y:0, width:VB_W, height:VB_H, fill:"url(#waves)" }, document.getElementById("gSea"));
+
+/* land, with a shallow-water halo behind it */
+(function land(){
+  const shelf = document.getElementById("gShelf"), main = document.getElementById("gLand");
+  for (const mass of LANDMASSES){
+    const d = toPath(mass.map(([lo,la]) => project(lo,la))) + " Z";
+    el("path", { class:"shelf", d }, shelf);
+    el("path", { class:"land",  d }, main);
+  }
+})();
+
+/* ===================================================================
+   ROUTE - a smooth curve through the sea waypoints
+   =================================================================== */
+const toRad = d => d * Math.PI / 180;
+function haversineKm(a, b){
+  const dla = toRad(b[1]-a[1]), dlo = toRad(b[0]-a[0]);
+  const h = Math.sin(dla/2)**2 + Math.cos(toRad(a[1]))*Math.cos(toRad(b[1]))*Math.sin(dlo/2)**2;
+  return 6371 * 2 * Math.asin(Math.sqrt(h));
+}
+function smooth(pts, per){
+  const P = [pts[0], ...pts, pts[pts.length-1]];
+  const out = [];
+  for (let i = 1; i < P.length - 2; i++){
+    const [p0,p1,p2,p3] = [P[i-1],P[i],P[i+1],P[i+2]];
+    for (let s = 0; s < per; s++){
+      const t = s/per, t2 = t*t, t3 = t2*t;
+      const c = k => 0.5*((2*p1[k]) + (-p0[k]+p2[k])*t
+                        + (2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*t2
+                        + (-p0[k]+3*p1[k]-3*p2[k]+p3[k])*t3);
+      out.push([c(0), c(1)]);
+    }
+  }
+  out.push(pts[pts.length-1]);
+  return out;
+}
+const ROUTE_LL = smooth(
+  [[CONFIG.origin.lon, CONFIG.origin.lat], ...CONFIG.waypoints, [CONFIG.dest.lon, CONFIG.dest.lat]],
+  CONFIG.samplesPerLeg
+);
+const ROUTE_D = toPath(ROUTE_LL.map(([lo,la]) => project(lo,la)));
+const KM = ROUTE_LL.reduce((sum, pt, i) => i ? sum + haversineKm(ROUTE_LL[i-1], pt) : 0, 0);
+
+const gRoute = document.getElementById("gRoute");
+el("path", { class:"route-todo", d:ROUTE_D }, gRoute);
+const donePath = el("path", { class:"route-done", d:ROUTE_D }, gRoute);
+const ROUTE_LEN = donePath.getTotalLength();
+
+/* ===================================================================
+   SCENERY - placed, drawn, and wired up for poking
+   =================================================================== */
+const VOICE_POS  = {};                      // who -> [x,y] in viewBox units
+const VOICE_NODE = {};                      // who -> the group that draws them
+const VOICE_BOX  = {};                      // who -> a STABLE art box, measured once
+const VOICE_REACH = {};                     // who -> progress at which they're reached
+const POKE_COUNT = {};
+const SHEETED = {};                         // who -> their stage-curtain group
+
+/* The lilo travels north to south, so a character is "reached" at the moment the
+   flamingos draw level with their latitude. Everything north of London is
+   therefore visible from the start, and Africa turns up last. */
+const ROUTE_YS = (() => {
+  const n = 400, arr = [];
+  for (let i = 0; i <= n; i++) arr.push(donePath.getPointAtLength(ROUTE_LEN * i / n).y);
+  return arr;
+})();
+function reachFor(y){
+  const n = ROUTE_YS.length - 1;
+  for (let i = 0; i <= n; i++) if (ROUTE_YS[i] >= y) return i / n;
+  return 1;
+}
+const reachDate = reach => new Date(ANCHOR + reach * SPAN);
+const DATE_FMT = new Intl.DateTimeFormat("en-GB", { weekday:"long", day:"numeric", month:"long" });
+
+function register(node, voice, x, y, artBox, sheetGroup){
+  ensureVoice(voice);
+  VOICE_NODE[voice]  = node;
+  VOICE_POS[voice]   = [x, y];
+  VOICE_BOX[voice]   = artBox;
+  VOICE_REACH[voice] = reachFor(y);
+  POKE_COUNT[voice]  = 0;
+  if (sheetGroup) SHEETED[voice] = sheetGroup;
+
+  node.setAttribute("class", "poke");
+  node.setAttribute("tabindex", "0");
+  node.setAttribute("role", "button");
+  el("circle", { cx:0, cy:0, r:28, fill:"transparent" }, node);   // generous hit area
+  const tap = () => tapVoice(voice, node);
+  node.addEventListener("click", tap);
+  node.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " "){ e.preventDefault(); tap(); }
+  });
+}
+
+(function scenery(){
+  const g = document.getElementById("gScenery");
+
+  for (const item of SEA_LABELS){
+    const [x,y] = project(item.lon, item.lat);
+    const t = el("text", { class:"sea-label", x, y,
+                           "text-anchor": item.anchor || "middle",
+                           transform:`rotate(-7 ${x} ${y})` }, g);
+    t.textContent = item.text;
+  }
+
+  for (const item of SCENERY){
+    const [x,y] = project(item.lon, item.lat);
+    const wrap  = el("g", { transform:`translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${item.s})` }, g);
+    const inner = el("g", { class:"wob" }, wrap);
+    inner.innerHTML = DRAW[item.draw]();
+
+    /* Measure once, here. Reading it later would pick up the idle animations
+       mid-frame, which made the speech bubble drift around the sun's rays. */
+    const bb  = inner.getBBox();
+    const box = { x: x + bb.x * item.s, y: y + bb.y * item.s,
+                  w: bb.width * item.s, h: bb.height * item.s };
+
+    /* the curtain they wait behind until the flamingos draw level */
+    const cover = el("g", { class:"cover" }, wrap);
+    cover.innerHTML = DRAW.curtain();
+    const fit = Math.max(0.80, Math.min(1.25, Math.max(bb.width, bb.height) / 62));
+    cover.setAttribute("transform", `scale(${fit.toFixed(2)})`);
+
+    register(wrap, item.voice, x, y, box, cover);
+  }
+})();
+
+/* ===================================================================
+   PLACES - the two ends of the journey, as landmarks not pins.
+   Never sheeted: hiding where you are going would break the map.
+   =================================================================== */
+(function places(){
+  const g = document.getElementById("gPlaces");
+  const put = (place, drawKey, voice, dx, dy, anchor) => {
+    const [x,y] = project(place.lon, place.lat);
+    const wrap  = el("g", { transform:`translate(${x.toFixed(1)} ${y.toFixed(1)})` }, g);
+    const inner = el("g", { class:"wob" }, wrap);
+    inner.innerHTML = DRAW[drawKey]();
+    const t = el("text", { class:"place-label", x:dx, y:dy, "text-anchor":anchor }, wrap);
+    t.textContent = place.name;
+    const bb = inner.getBBox();
+    register(wrap, voice, x, y, { x:x+bb.x, y:y+bb.y, w:bb.width, h:bb.height }, null);
+  };
+  put(CONFIG.origin, "bigBen",   "Big Ben",   16, 15, "start");
+  put(CONFIG.dest,   "algarveArch", "The Stork", -23, 13, "end");
+  VOICE_REACH["Big Ben"]   = -0.0001;  // they set off from here, so he opens the show
+  VOICE_REACH["The Stork"] = 1;     // and the stork only talks once you land
+})();
+
+/* every character, in the order the flamingos meet them */
+const CAST = Object.keys(VOICE_REACH).sort((a,b) => VOICE_REACH[a] - VOICE_REACH[b]);
+
+/* ===================================================================
+   THE CRAFT - two flamingos, one double lilo, facing west
+   =================================================================== */
+function flamingo(cx, t){
+  const hat = t.accessory === "hat", shades = t.accessory === "shades";
+  return `
+    <ellipse class="ink" cx="${cx}" cy="-7" rx="15" ry="10.5" fill="url(#liloG)"/>
+    <ellipse cx="${cx+3}" cy="-9" rx="8" ry="5" fill="#ffd2e2" opacity=".6"/>
+    <path class="ink" fill="#ff9ec2" d="M${cx+13} -9 L${cx+25} -14 L${cx+21} -6 L${cx+27} -5 L${cx+13} -2 Z"/>
+    <path d="M${cx-5} -13 C${cx-16} -19 ${cx-21} -29 ${cx-17} -36"
+          stroke="#ff9ec2" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <circle class="ink" cx="${cx-18}" cy="-37.5" r="5.6" fill="#ffb3cf"/>
+    <path class="ink-thin" d="M${cx-22} -36.4 L${cx-32} -33.6 L${cx-22.6} -31.6 Z" fill="#ffc23c"/>
+    <circle class="blinkeye" cx="${cx-19.6}" cy="-39" r="1.25" fill="#4a3728"/>
+    ${shades ? `<rect class="ink-thin" x="${cx-24}" y="-41.8" width="7" height="4.4" rx="1.8" fill="#2b2b2b"/>
+                <path class="ink-thin" d="M${cx-17} -40.6 h2.4"/>` : ``}
+    ${hat ? `<path class="ink-thin" d="M${cx-26} -42 L${cx-11} -42" stroke-width="2.4" fill="none"/>
+             <path class="ink-thin" d="M${cx-23} -42.4 a4.6 4.6 0 0 1 8.8 0 Z" fill="#ffc23c"/>` : ``}`;
+}
+
+(function buildCraft(){
+  const [d0, d1] = CONFIG.travellers;
+  document.getElementById("gCraft").innerHTML = `
+  <g id="craftPos">
+    <g id="craftSplash" opacity=".55">
+      <path class="ink-thin" d="M-66 10 q7 -5 14 0" stroke="#eafcff"/>
+      <path class="ink-thin" d="M58 12 q7 -5 14 0" stroke="#eafcff"/>
+    </g>
+    <ellipse cx="0" cy="11" rx="54" ry="13" fill="#0b6a72" opacity=".26"/>
+    <ellipse class="ink" cx="-25" cy="6" rx="27" ry="12.5" fill="url(#liloG)"/>
+    <ellipse cx="-25" cy="6" rx="12" ry="5" fill="#1d8f9c" opacity=".5"/>
+    <ellipse class="ink" cx="25" cy="6" rx="27" ry="12.5" fill="url(#liloG)"/>
+    <ellipse cx="25" cy="6" rx="12" ry="5" fill="#1d8f9c" opacity=".5"/>
+    <ellipse cx="-31" cy="1.5" rx="12" ry="3.2" fill="#ffe2ec" opacity=".65"/>
+    <ellipse cx="19"  cy="1.5" rx="12" ry="3.2" fill="#ffe2ec" opacity=".65"/>
+    ${flamingo(-25, d0)}
+    ${flamingo(25,  d1)}
+    <text class="lilo-label" x="-25" y="31">${d0.name}</text>
+    <text class="lilo-label" x="25"  y="31">${d1.name}</text>
+  </g>`;
+})();
+const craft  = document.getElementById("craftPos");
+const splash = document.getElementById("craftSplash");
+const CRAFT_SCALE = 0.62;
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ===================================================================
+   THE SPEECH BUBBLE - an HTML overlay positioned from the projection
+   =================================================================== */
+const bubble  = document.getElementById("bubble");
+const chartEl = document.getElementById("chart");
+let pokeTimer = null;
+
+const stageEl  = document.getElementById("stage");
+const tagEl    = document.getElementById("tag");
+const voyageEl = document.getElementById("voyage");
+const footEl   = document.getElementById("foot");
+
+/* Size the chart from what is genuinely left after the tag, the voyage bar and
+   the padding - measured rather than assumed, so it survives font loading and
+   any wording change in the countdown. */
+function fitChart(){
+  const cs  = getComputedStyle(document.body);
+  const gap = 12;
+  const overlaid = getComputedStyle(tagEl).position === "absolute";
+  const pad = parseFloat(getComputedStyle(chartEl).paddingLeft) * 2;
+  const ratio = VB_W / VB_H;
+
+  /* everything vertical that is not the chart itself */
+  const base = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + 4
+             + (overlaid ? 24                                   // the voyage bar overhangs
+                         : tagEl.offsetHeight + voyageEl.offsetHeight
+                           + footEl.offsetHeight + gap * 3);
+
+  const widthFor = extra => {
+    const availH = window.innerHeight - base - extra;
+    return Math.max(260, Math.round((availH - pad) * ratio + pad));
+  };
+
+  /* Decide float-vs-caption from the width the chart would have with no caption.
+     That quantity does not depend on the mode we pick, so the two cannot
+     oscillate around the threshold. */
+  const freeW = widthFor(0);
+  const canFloat = freeW >= 620 && (freeW - pad) / ratio + pad >= 600;
+  stageEl.classList.toggle("floating", canFloat);
+
+  /* a caption sits in the flow, so it has to be paid for out of the height */
+  stageEl.style.maxWidth = (canFloat ? freeW : widthFor(bubble.offsetHeight + gap)) + "px";
+}
+
+function placeBubble(voice){
+  const pos = VOICE_POS[voice];
+  if (!pos) return;
+  /* as a caption card it just sits in the flow - nothing to position */
+  if (getComputedStyle(bubble).position !== "absolute"){
+    bubble.style.left = bubble.style.top = "";
+    bubble.classList.remove("above", "below");
+    return;
+  }
+  const [vx, vy] = pos;
+  const cw = chartEl.clientWidth, ch = chartEl.clientHeight;
+  const w = bubble.offsetWidth, h = bubble.offsetHeight;
+  const px = vx / VB_W * cw, py = vy / VB_H * ch;
+
+  /* Things the bubble should not cover, most important first. The flamingos and
+     the speaker matter more than scenery, so they carry a heavier weight and get
+     sacrificed last. */
+  const chartBox = chartEl.getBoundingClientRect();
+  const rel = n => { const b = n.getBoundingClientRect();
+                     return { x:b.x - chartBox.x, y:b.y - chartBox.y, w:b.width, h:b.height }; };
+  const blockers = [];
+  [tagEl, voyageEl].forEach(n => {
+    if (getComputedStyle(n).position === "absolute") blockers.push({ ...rel(n), weight:3 });
+  });
+  blockers.push({ ...rel(craft), weight:6 });                       // the flamingos
+
+  /* every other character, lightly - the bubble should prefer open water */
+  const toPx = b => ({ x: b.x / VB_W * cw, y: b.y / VB_H * ch,
+                       w: b.w / VB_W * cw, h: b.h / VB_H * ch });
+  for (const other of CAST){
+    if (other === voice || !VOICE_BOX[other]) continue;
+    blockers.push({ ...toPx(VOICE_BOX[other]), weight:0.15 });
+  }
+
+  const overlap = (x, y) => blockers.reduce((sum, b) => {
+    const ox = Math.max(0, Math.min(x + w, b.x + b.w) - Math.max(x, b.x));
+    const oy = Math.max(0, Math.min(y + h, b.y + b.h) - Math.max(y, b.y));
+    return sum + ox * oy * b.weight;
+  }, 0);
+
+  /* Try both sides of the speaker at three horizontal alignments and keep the
+     least-obstructed option, rather than falling back to one that collides. */
+  /* Anchor to the measured art box, capped to a square around the character's
+     own point. Without the cap, wide art like the sun's rays pushes the bubble
+     so far out that the tail points at empty sea. */
+  let sp = { x:px-12, y:py-12, w:24, h:24 };
+  if (VOICE_BOX[voice]){
+    const b = VOICE_BOX[voice], cap = 30;
+    const x0 = Math.max(b.x, vx - cap), x1 = Math.min(b.x + b.w, vx + cap);
+    const y0 = Math.max(b.y, vy - cap), y1 = Math.min(b.y + b.h, vy + cap);
+    sp = toPx({ x:x0, y:y0, w:Math.max(12, x1-x0), h:Math.max(12, y1-y0) });
+  }
+  blockers.push({ ...sp, weight:8 });                               // the speaker
+
+  /* Two ideal positions - just above or just below the speaker - then a fine
+     scan around them, because the ideal spot is often blocked while a slot a
+     few pixels away is completely clear. */
+  const prefs = [sp.y - h - 16, sp.y + sp.h + 16];
+  const xs = [px - 34, px - w + 34, px - w / 2];
+  const ys = new Set();
+  for (const pr of prefs) for (let dy = -128; dy <= 128; dy += 8) ys.add(pr + dy);
+
+  /* where the tail tip would land for a given left edge, and how far that is
+     from the character it is supposed to be coming out of */
+  const tailAt  = x => x + 6 + Math.max(14, Math.min(px - x - 6, w - 34));
+  const tailErr = x => Math.abs(tailAt(x) - px);
+
+  let best = null;
+  for (const y0 of ys){
+    if (y0 < 8 || y0 + h > ch - 8) continue;
+    const drift = Math.min(...prefs.map(pr => Math.abs(y0 - pr)));
+    for (const x0 of xs){
+      const x = Math.max(8, Math.min(x0, cw - w - 8));
+      const cost = overlap(x, y0) + drift * 10 + tailErr(x) * 8;
+      if (!best || cost < best.cost) best = { x, y:y0, cost, drift, above: y0 > sp.y };
+    }
+  }
+  /* nothing fits anywhere: fall back to hanging below and clamping */
+  if (!best){
+    const y = Math.max(8, Math.min(prefs[1], ch - h - 8));
+    best = { x: Math.max(8, Math.min(px - 34, cw - w - 8)), y, drift:0, above:true };
+  }
+  /* if the only clear slot is a long way off, the tail would point at nothing */
+  bubble.classList.toggle("far", best.drift > 70);
+
+  bubble.classList.toggle("above", best.above);
+  bubble.classList.toggle("below", !best.above);
+  const left = best.x, top = best.y;
+  bubble.style.left = left + "px";
+  bubble.style.top  = top + "px";
+  /* the tail tracks the speaker even after the bubble is clamped to the chart */
+  bubble.style.setProperty("--tail",
+    Math.max(14, Math.min(px - left - 6, w - 34)).toFixed(0) + "px");
+}
+
+let currentAnchor = null;
+/* `label` is what the bubble is captioned with; `anchor` is who it points at.
+   They differ for a sheeted character, whose name must stay secret. */
+function say(label, text, hint, anchor){
+  const at = anchor || label;
+  currentAnchor = at;
+  Object.values(VOICE_NODE).forEach(n => n.classList.remove("speaking"));
+  if (VOICE_NODE[at]) VOICE_NODE[at].classList.add("speaking");
+  document.getElementById("bubbleWho").textContent = label;
+  document.getElementById("bubbleSaid").textContent = text;
+  document.getElementById("bubbleHint").textContent = hint;
+  bubble.classList.add("show");
+  requestAnimationFrame(() => placeBubble(at));
+}
+
+let todayVoice = null, todayLine = null, todayHint = "";
+function sayToday(){
+  if (todayVoice) say(todayVoice, todayLine, todayHint);
+}
+
+function tapVoice(voice, node){
+  const reached = progress(virtualNow()) >= VOICE_REACH[voice];
+  if (reached){
+    const pokes = VOICES[voice].pokes;
+    const n = POKE_COUNT[voice]++ % pokes.length;
+    say(voice, pokes[n], "Tap anything on the chart");
+  } else {
+    /* deliberately anonymous - naming them would spoil the reveal */
+    const when = DATE_FMT.format(reachDate(VOICE_REACH[voice]));
+    say("Behind the curtain",
+        `Too early. Whoever is behind this curtain doesn't meet the flamingos until ${when}.`,
+        "Come back then for the curtain call", voice);
+  }
+  node.classList.add("talking");
+  setTimeout(() => node.classList.remove("talking"), 750);
+  clearTimeout(pokeTimer);
+  pokeTimer = setTimeout(() => { pokeTimer = null; sayToday(); }, reached ? 4200 : 5600);
+}
+
+/* ── who speaks today ──────────────────────────────────────────────
+   A character is met when the flamingos draw level with them. Whoever you have
+   just met speaks that day; on a day you meet nobody new, the line comes from
+   someone you have already met, least recently spoken first. So the chart both
+   progresses and keeps its earlier company in play.                          */
+const dayProgress = d => clamp01((d * DAY) / SPAN);
+
+function scheduleFor(upto){
+  const lastSpoke = new Map(), tally = new Map();
+  let pick = null;
+  for (let d = 0; d <= upto; d++){
+    /* Judge this by the progress at the START of the day. Using the end of the
+       day let a character be today's speaker while still under their sheet,
+       because the flamingos only draw level with them that evening. */
+    const pNow  = dayProgress(d);
+    const pPrev = d === 0 ? -1 : dayProgress(d - 1);
+    const met   = CAST.filter(v => VOICE_REACH[v] <= pNow);
+    const fresh = CAST.filter(v => VOICE_REACH[v] > pPrev && VOICE_REACH[v] <= pNow);
+    let who;
+    let isFresh = false;
+    if (fresh.length){ who = fresh[0]; isFresh = true; }   // CAST is in meeting order
+    else if (met.length){
+      const rnd = mulberry32(hashStr(CONFIG.anchor + "::pick::" + d));
+      who = met
+        .map(v => ({ v, last: lastSpoke.has(v) ? lastSpoke.get(v) : -1e9, jitter: rnd() }))
+        .sort((a, b) => a.last - b.last || a.jitter - b.jitter)[0].v;
+    } else who = CAST[0];
+    pick = { who, nth: tally.get(who) || 0, fresh: isFresh };
+    lastSpoke.set(who, d);
+    tally.set(who, (tally.get(who) || 0) + 1);
+  }
+  return pick;
+}
+
+/* each character's own lines are shuffled once and then worked through in
+   order, so nobody repeats themselves until they've run out of things to say */
+function lineFor(voice, nth, t, p){
+  const deck = shuffled(VOICES[voice].lines, "lines::" + voice);
+  return fillTemplate(deck[nth % deck.length], t, p);
+}
+
+/* show or hide each character according to how far the flamingos have got */
+const revealedNow = {};
+function updateReveals(p, animate){
+  for (const voice of CAST){
+    const show = p >= VOICE_REACH[voice];
+    if (revealedNow[voice] === show) continue;
+    revealedNow[voice] = show;
+    const node  = VOICE_NODE[voice];
+    const art   = node.querySelector(".wob");
+    const cover = SHEETED[voice];
+    if (!cover){                                  // London and Algarve are never hidden
+      node.setAttribute("aria-label", voice + " - poke for a reaction");
+      continue;
+    }
+    if (show){
+      art.classList.remove("art-hidden");
+      node.setAttribute("aria-label", voice + " - poke for a reaction");
+      if (animate){
+        art.classList.add("just-revealed");
+        cover.classList.add("open");
+        /* the rail lifts last and finishes at ~1.3s - hiding sooner clips it */
+        setTimeout(() => { cover.classList.add("gone"); art.classList.remove("just-revealed"); }, 1400);
+      } else {
+        cover.classList.add("gone");
+      }
+    } else {
+      art.classList.add("art-hidden");
+      cover.classList.remove("gone", "open");
+      node.setAttribute("aria-label", "Behind a curtain - the flamingos haven't reached it yet");
+    }
+  }
+}
+
+/* ===================================================================
+   RENDER
+   =================================================================== */
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, "0");
+
+let renderedDay = null;
+let confettiFired = false;
+let revealsPrimed = false;   // first paint sets the scene; later changes animate
+
+function confetti(){
+  if (confettiFired) return;
+  confettiFired = true;
+  if (REDUCED) return;
+  const box = document.createElement("div");
+  box.className = "confetti";
+  const cols = ["#ffc23c","#ff7ba8","#4f9e44","#ff6b57","#34c0cb","#fffdf6"];
+  for (let i = 0; i < 80; i++){
+    const s = document.createElement("i");
+    s.style.left = (Math.random()*100) + "vw";
+    s.style.background = cols[i % cols.length];
+    s.style.animationDuration = (2.8 + Math.random()*2.6) + "s";
+    s.style.animationDelay = (Math.random()*1.8) + "s";
+    box.appendChild(s);
+  }
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 9500);
+}
+
+function moveCraft(){
+  const p = progress(virtualNow());
+  const pt = donePath.getPointAtLength(ROUTE_LEN * p);
+  let tilt = 0, lift = 0;
+  if (!REDUCED){
+    const ms = performance.now();
+    tilt = Math.sin(ms / 2750 * Math.PI) * 3.2;
+    lift = Math.sin(ms / 1800 * Math.PI) * 1.8;
+    splash.setAttribute("opacity", (0.34 + 0.3 * (1 + Math.sin(ms / 950 * Math.PI)) / 2).toFixed(3));
+  }
+  craft.setAttribute("transform",
+    `translate(${pt.x.toFixed(2)} ${(pt.y + lift).toFixed(2)}) scale(${CRAFT_SCALE}) rotate(${tilt.toFixed(2)})`);
+}
+
+function render(){
+  const t = virtualNow();
+  const p = progress(t);
+  const arrived = t >= DEPART;
+  const pct = Math.floor(p * 100);
+
+  moveCraft();
+  donePath.style.strokeDasharray = `${(ROUTE_LEN * p).toFixed(1)} ${ROUTE_LEN.toFixed(1)}`;
+
+  /* countdown tag */
+  const left = Math.max(0, DEPART - t);
+  const dd = Math.floor(left / DAY);
+  const hh = Math.floor(left % DAY / 3600000);
+  const mm = Math.floor(left % 3600000 / 60000);
+  const ss = Math.floor(left % 60000 / 1000);
+  $("tag").classList.toggle("landed", arrived);
+  if (arrived){
+    $("tagNum").textContent = "Boa viagem!";
+    $("tagCap").textContent = "YOU'RE IN THE ALGARVE";
+    $("tagSub").textContent = "Go on. Put the phone down.";
+    confetti();
+  } else {
+    $("tagNum").textContent = dd === 0 ? "Today!" : dd;
+    $("tagCap").textContent = dd === 0 ? "IT'S TODAY" : (dd === 1 ? "DAY UNTIL THE ALGARVE" : "DAYS UNTIL THE ALGARVE");
+    $("tagSub").textContent = `and ${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+  }
+
+  /* voyage bar */
+  $("ropeFill").style.width   = (p * 100) + "%";
+  $("ropeMarker").style.left  = (p * 100) + "%";
+  $("voyagePct").textContent  = arrived ? "landed!" : pct + "%";
+
+  /* who is visible, and who is talking */
+  updateReveals(p, revealsPrimed);
+  revealsPrimed = true;
+
+  const d = dayIndex(t);
+  if (d !== renderedDay){
+    renderedDay = d;
+    if (arrived){
+      todayVoice = "The Stork";
+      todayLine  = `That's Algarve. ${CONFIG.travellers[0].name} and ${CONFIG.travellers[1].name}, ` +
+                   `shuffle up - there's room on the wall. Welcome to the Algarve.`;
+      todayHint  = "That's the last of them. Go and enjoy it.";
+    } else {
+      const pick = scheduleFor(Math.max(0, d));
+      todayVoice = pick.who;
+      todayLine  = lineFor(pick.who, pick.nth, t, p);
+      todayHint  = pick.fresh
+        ? "Just drew level with them - someone new tomorrow"
+        : "Someone else will have a word tomorrow";
+    }
+    if (!pokeTimer) sayToday();
+  }
+}
+
+$("foot").textContent = isFaked()
+  ? "simulated clock - drop the URL parameter for the real thing"
+  : `${Math.round(KM).toLocaleString("en-GB")} km of paddling - tap anything on the chart`;
+
+fitChart();
+render();
+sayToday();
+
+const reflow = () => {
+  fitChart();
+  if (currentAnchor) placeBubble(currentAnchor);
+};
+addEventListener("resize", reflow);
+addEventListener("orientationchange", reflow);
+
+/* The caption's height depends on how long today's line is, which fitChart
+   cannot know until the text is in. Re-fit when the box actually changes size. */
+if (window.ResizeObserver){
+  let lastH = 0, queued = false;
+  new ResizeObserver(() => {
+    const h = bubble.offsetHeight;
+    if (Math.abs(h - lastH) < 2 || queued) return;
+    lastH = h; queued = true;
+    requestAnimationFrame(() => { queued = false; reflow(); });
+  }).observe(bubble);
+}
+/* the webfont changes the tag's height, which changes how much room is left */
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(reflow);
+
+let lastPaint = 0;
+(function loop(ts){
+  if (!lastPaint || ts - lastPaint > 250){ lastPaint = ts; render(); }
+  else if (!REDUCED) moveCraft();
+  requestAnimationFrame(loop);
+})(0);
+</script>
+</body>
+</html>
