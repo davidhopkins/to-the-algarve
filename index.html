@@ -207,6 +207,25 @@
   .stage.floating .bubble.above::before{top:-16px;left:var(--tail);border-width:0 13px 16px 0;border-color:transparent transparent var(--ink) transparent}
   .stage.floating .bubble.above::after{top:-11.5px;left:calc(var(--tail) + 2px);border-width:0 9px 12px 0;border-color:transparent transparent #fffaf0 transparent}
 
+  /* ---------- the camera (small screens) ----------
+     On a phone the whole chart is 355px wide, which renders the smallest
+     characters at 15px. So instead of showing everything, small screens get a
+     movable window onto the chart, framed on the flamingos. Zooming happens
+     inside the SVG, which is why the caption underneath never moves. */
+  .stage.camera .chart{touch-action:none}
+  .stage.camera #map{cursor:grab}
+  .stage.camera.grabbing #map{cursor:grabbing}
+
+  .camview{
+    position:absolute;right:10px;bottom:10px;z-index:5;display:none;
+    background:var(--paper);border:2.5px solid var(--ink);border-radius:99px;
+    box-shadow:3px 3px 0 rgba(74,55,40,.18);
+    font-family:var(--font);font-size:11.5px;font-weight:700;color:var(--ink);
+    padding:7px 13px;cursor:pointer;letter-spacing:.02em;
+  }
+  .stage.camera .camview{display:block}
+  .camview:active{transform:translate(1px,1px);box-shadow:2px 2px 0 rgba(74,55,40,.18)}
+
   /* the stage curtain, and drawing it back when the flamingos arrive */
   .cover{pointer-events:none}
   .cover > g > g{transform-box:fill-box}
@@ -276,7 +295,7 @@
       <g id="gPlaces"></g>
       <g id="gCraft"></g>
     </svg>
-
+    <button class="camview" id="camView" type="button">Whole chart</button>
   </div>
 
   <div class="bubble" id="bubble" aria-live="polite">
@@ -1049,6 +1068,130 @@ const CRAFT_SCALE = 0.62;
 const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ===================================================================
+   THE CAMERA - a movable window onto the chart, for small screens.
+   The viewBox aspect is held constant so the layout never reflows; only
+   where the window sits and how wide it is ever change.
+   =================================================================== */
+const VB_ASPECT = VB_H / VB_W;
+const CAM = { cx: VB_W / 2, cy: VB_H / 2, span: VB_W, follow: true, active: false };
+
+function applyCam(){
+  CAM.span = Math.max(150, Math.min(VB_W, CAM.span));
+  const sh = CAM.span * VB_ASPECT;
+  CAM.cx = Math.max(CAM.span / 2, Math.min(VB_W - CAM.span / 2, CAM.cx));
+  CAM.cy = Math.max(sh / 2, Math.min(VB_H - sh / 2, CAM.cy));
+  svg.setAttribute("viewBox",
+    `${(CAM.cx - CAM.span / 2).toFixed(1)} ${(CAM.cy - sh / 2).toFixed(1)} ` +
+    `${CAM.span.toFixed(1)} ${sh.toFixed(1)}`);
+}
+
+/* the zoom that makes characters comfortably legible at this chart size */
+function defaultSpan(){
+  return Math.max(150, Math.min(VB_W, document.getElementById('chart').clientWidth / 1.35));
+}
+
+/* Frame the flamingos AND whoever is talking. If today's speaker is far away -
+   the kraken, say, while the lilo is off Portugal - this pulls back just enough
+   to keep them both on screen rather than naming someone you cannot see. */
+function frameOnJourney(){
+  if (!CAM.active || !CAM.follow) return;
+  const p  = progress(virtualNow());
+  const at = donePath.getPointAtLength(ROUTE_LEN * p);
+  const pts = [[at.x, at.y]];
+  if (todayVoice && VOICE_POS[todayVoice]) pts.push(VOICE_POS[todayVoice]);
+
+  const xs = pts.map(q => q[0]), ys = pts.map(q => q[1]);
+  const pad = 58;
+  const needW = (Math.max(...xs) - Math.min(...xs)) + pad * 2;
+  const needH = (Math.max(...ys) - Math.min(...ys)) + pad * 2;
+  const need  = Math.max(needW, needH / VB_ASPECT);
+
+  CAM.span = Math.min(VB_W, Math.max(need, defaultSpan()));
+  CAM.cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+  CAM.cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+  applyCam();
+}
+
+function setCameraActive(on){
+  if (CAM.active === on) return;
+  CAM.active = on;
+  stageEl.classList.toggle("camera", on);
+  if (on){ CAM.follow = true; frameOnJourney(); }
+  else { CAM.span = VB_W; CAM.cx = VB_W / 2; CAM.cy = VB_H / 2; CAM.follow = true; applyCam(); }
+  syncCamButton();
+}
+const camBtn = document.getElementById("camView");
+function syncCamButton(){
+  if (!camBtn) return;
+  camBtn.textContent = CAM.span > VB_W * 0.92 ? "Follow the flamingos" : "Whole chart";
+}
+if (camBtn) camBtn.addEventListener("click", () => {
+  if (CAM.span > VB_W * 0.92){ CAM.follow = true; frameOnJourney(); }
+  else { CAM.follow = false; CAM.span = VB_W; CAM.cx = VB_W / 2; CAM.cy = VB_H / 2; applyCam(); }
+  syncCamButton();
+});
+
+/* ── drag to pan, pinch to zoom ─────────────────────────────────────
+   Pointer events, so one code path covers touch, pen and mouse.        */
+(function gestures(){
+  /* own reference: this runs at parse time, before chartEl is initialised */
+  const chart = document.getElementById("chart");
+  const pts = new Map();
+  let startSpan = 0, startDist = 0, startCx = 0, startCy = 0, moved = 0;
+
+  const perUnit = () => chart.clientWidth / CAM.span;       // screen px per viewBox unit
+  const dist = () => {
+    const [a, b] = [...pts.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+
+  svg.addEventListener("pointerdown", e => {
+    if (!CAM.active) return;
+    pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+    moved = 0;
+    startCx = CAM.cx; startCy = CAM.cy; startSpan = CAM.span;
+    if (pts.size === 2) startDist = dist();
+    stageEl.classList.add("grabbing");
+    svg.setPointerCapture(e.pointerId);
+  });
+
+  svg.addEventListener("pointermove", e => {
+    if (!CAM.active || !pts.has(e.pointerId)) return;
+    const prev = pts.get(e.pointerId);
+    pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+    moved += Math.hypot(e.clientX - prev.x, e.clientY - prev.y);
+
+    if (pts.size === 2 && startDist > 0){
+      const ratio = dist() / startDist;
+      CAM.span = startSpan / ratio;
+      CAM.follow = false;
+    } else if (pts.size === 1){
+      const first = [...pts.keys()][0];
+      if (e.pointerId !== first) return;
+      CAM.cx -= (e.clientX - prev.x) / perUnit();
+      CAM.cy -= (e.clientY - prev.y) / perUnit();
+      CAM.follow = false;
+    }
+    applyCam();
+    syncCamButton();
+  });
+
+  const end = e => {
+    pts.delete(e.pointerId);
+    if (!pts.size) stageEl.classList.remove("grabbing");
+    if (pts.size < 2) startDist = 0;
+  };
+  svg.addEventListener("pointerup", end);
+  svg.addEventListener("pointercancel", end);
+
+  /* A drag must not count as a poke. Capture the click before it reaches a
+     character and swallow it if the finger travelled. */
+  chart.addEventListener("click", e => {
+    if (moved > 10){ e.stopPropagation(); e.preventDefault(); moved = 0; }
+  }, true);
+})();
+
+/* ===================================================================
    THE SPEECH BUBBLE - an HTML overlay positioned from the projection
    =================================================================== */
 const bubble  = document.getElementById("bubble");
@@ -1090,6 +1233,13 @@ function fitChart(){
 
   /* a caption sits in the flow, so it has to be paid for out of the height */
   stageEl.style.maxWidth = (canFloat ? freeW : widthFor(bubble.offsetHeight + gap)) + "px";
+
+  /* The camera is for touch: small screen AND imprecise pointer. A laptop with
+     a short window reads the whole chart perfectly well with a mouse, and
+     zooming it there would be an unwanted regression - so key off pointer type
+     as well as size, with a hard floor for genuinely tiny windows. */
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+  setCameraActive(chartEl.clientWidth < 420 || (!canFloat && coarse));
 }
 
 function placeBubble(voice){
@@ -1374,6 +1524,8 @@ function render(){
   $("ropeFill").style.width   = (p * 100) + "%";
   $("ropeMarker").style.left  = (p * 100) + "%";
   $("voyagePct").textContent  = arrived ? "landed!" : pct + "%";
+
+  if (CAM.active && CAM.follow) frameOnJourney();
 
   /* who is visible, and who is talking */
   updateReveals(p, revealsPrimed);

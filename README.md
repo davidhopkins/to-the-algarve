@@ -145,6 +145,36 @@ The chart is the page. Everything else is either pinned to it or tucked undernea
 - Every character is a real focusable button — tab to one and press Enter to poke it.
 - `prefers-reduced-motion` stops all movement; the countdown keeps running.
 
+### The camera (touch screens)
+
+On a phone the whole chart is about 355px wide, which renders the smallest characters at
+15px and gives 32px tap targets — under the 44px minimum for reliable touch. There is no
+way to fix that by adjusting sizes: it is 2,000km of ocean with 26 things on it.
+
+So small touch screens get a **movable window** onto the chart instead of the whole
+thing. It opens framed on the flamingos, drag to pan, pinch to zoom, and a button toggles
+between "Whole chart" and "Follow the flamingos". That brings the median character to
+around 60px and tap targets to around 57px — both better than the desktop figures.
+
+Three things worth knowing if you touch this:
+
+- **Zooming happens inside the SVG viewBox, never on the page.** Pinch-zooming the page
+  would push the caption off-screen, because fixed positioning does not track the visual
+  viewport. Zooming the viewBox leaves the caption exactly where it is.
+- **The viewBox aspect ratio is held constant** as the camera moves, so the element's
+  height never changes and the layout cannot reflow underneath you.
+- **The camera is gated on pointer type as well as size.** A laptop with a short window
+  can end up with a 500px chart, which reads fine with a mouse; zooming it there would be
+  a regression, so the camera needs a coarse pointer (or a genuinely tiny window) to
+  switch on.
+
+Following the journey frames the flamingos *and* whoever is speaking. If today's voice is
+far away — the kraken while the lilo is off Portugal — it pulls back just enough to keep
+both on screen, rather than naming someone you cannot see.
+
+A drag is not a poke: if the pointer travels more than 10px the click is swallowed before
+it reaches a character.
+
 ### Placing the speech bubble
 
 Worth knowing if you touch this. The bubble scans candidate positions around the speaker

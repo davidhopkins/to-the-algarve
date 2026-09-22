@@ -42,44 +42,26 @@ window.CHARACTERS = {
     lines: [
       "Hello {both}! There's {days} left until you touch down in Portugal. Whoop!"
     ],
-    pokes: ["xxx"]
+    pokes: ["Ding Dong!"]
   },
 
   "The Rain Cloud": {               /* over northern England */
-    lines: [
-      "And where do you two think you're going? I had a whole fortnight of drizzle planned.",
-      "{days} left. I'll be right here when you get back. Waiting. Damply.",
-      "I could follow you, you know. I won't. But I could.",
-      "Nobody ever paddles TOWARDS me. I have noticed that over the years."
-    ],
-    pokes: ["Now look what you've done.", "*drizzles*", "Take a coat."]
+    lines: [],
+    pokes: ["Rain clouds only exist over here!"]
   },
 
   "Nessie": {                       /* Loch Ness */
-    lines: [
-      "You're paddling 2,000 km for a beach. I've been in this loch since 565 AD.",
-      "{days} days is nothing. Try being a rumour for fourteen centuries.",
-      "Get a photo of me on the way past. Nobody believed the last one.",
-      "{both} get a holiday. I get another documentary crew. Fine. It's fine."
-    ],
-    pokes: ["You saw nothing.", "Shh!", "I'm a log. Just a log."]
+    lines: [],
+    pokes: ["If you want to see me, you'll have to plan another trip..."]
   },
 
   "The Pint": {                     /* Ireland */
-    lines: [
-      "{days} to go. Sure, sit down. It'll pass quicker that way.",
-      "They do a grand beer in Portugal. It's not this. But it's grand.",
-      "{name} looks like they need a holiday. {other} looks like they need two."
-    ],
+    lines: [],
     pokes: ["*settles*", "Nearly ready.", "Don't rush me."]
   },
 
   "The Kraken": {                   /* the north-western Atlantic */
-    lines: [
-      "Eight arms. Nothing whatsoever to do with any of them. {days} to go.",
-      "I could drag you both to the depths. I won't. But I could.",
-      "{name}, you've been staring at this map. I've been staring at nothing since 1608."
-    ],
+    lines: [],
     pokes: ["Ink!", "Unhand me.", "*writhes*"]
   },
 
