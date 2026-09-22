@@ -40,7 +40,7 @@ window.CHARACTERS = {
 
   "Big Ben": {                      /* London. Speaks on day one. */
     lines: [
-      "Hello {both}! There's {days} left until you touch down in Portugal. Whoop!"
+      "Hello {both}! Big Ben says there's {days} left until you touch down in Portugal. Whoop!"
     ],
     pokes: ["Ding Dong!"]
   },
@@ -52,17 +52,17 @@ window.CHARACTERS = {
 
   "Nessie": {                       /* Loch Ness */
     lines: [],
-    pokes: ["If you want to see me, you'll have to plan another trip..."]
+    pokes: ["If you want to see Nessie, you'll have to plan another trip..."]
   },
 
   "The Pint": {                     /* Ireland */
     lines: [],
-    pokes: ["*settles*", "Nearly ready.", "Don't rush me."]
+    pokes: ["AF Guinesses yeah!"]
   },
 
   "The Kraken": {                   /* the north-western Atlantic */
     lines: [],
-    pokes: ["Ink!", "Unhand me.", "*writhes*"]
+    pokes: ["Careful! Monsters lurking over here..."]
   },
 
   "The Seagulls": {                 /* the North Sea */
