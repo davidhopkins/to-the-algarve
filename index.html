@@ -723,34 +723,33 @@ const DRAW = {
    creatures collide and nothing runs off the chart edge; the Iberian corner is
    deliberately busier, the way a hand-drawn chart should be. */
 const SCENERY = [
-  /* weather */
-  { lon:-2.60,  lat:54.60, draw:"rainCloud",  s:1,    voice:"The Rain Cloud" },
-  { lon:-13.80, lat:39.68, draw:"sun",        s:1,    voice:"The Sun" },
+  /* -- send-off cluster: all revealed at launch (advent day 0) -- */
+  { lon: -2.60, lat:54.60, draw:"rainCloud", s:1.0, voice:"The Rain Cloud" },
+  { lon: -4.40, lat:56.60, draw:"nessie", s:0.95, voice:"Nessie" },
+  { lon: -7.00, lat:52.20, draw:"pint", s:0.9, voice:"The Pint" },
+  { lon:-13.40, lat:51.60, draw:"kraken", s:0.9, voice:"The Kraken" },
+  { lon:  1.50, lat:53.50, draw:"seagulls", s:0.8, voice:"The Seagulls" },
 
-  /* the deep Atlantic */
-  { lon:-13.00, lat:51.50, draw:"kraken",     s:.9,   voice:"The Kraken" },
-  { lon:-16.00, lat:50.22, draw:"seaMonster", s:1.05, voice:"The Sea Monster" },
-  { lon:-17.00, lat:46.01, draw:"dolphins",   s:.9,   voice:"The Dolphins" },
-  { lon:-16.60, lat:42.60, draw:"mermaid",    s:.9,   voice:"The Mermaid" },
-  { lon:-12.40, lat:48.11, draw:"whale",      s:.92,  voice:"The Whale" },
-  { lon:-13.60, lat:43.90, draw:"pirateShip", s:.95,  voice:"The Pirate Ship" },
+  /* -- the journey south: one revealed per day, ordered by latitude -- */
+  { lon:-16.20, lat:49.60, draw:"seaMonster", s:1.05, voice:"The Sea Monster" },
+  { lon:  2.35, lat:48.86, draw:"eiffel", s:0.95, voice:"The Eiffel Tower" },
+  { lon:-13.60, lat:47.40, draw:"whale", s:0.92, voice:"The Whale" },
+  { lon:-16.80, lat:46.00, draw:"dolphins", s:0.9, voice:"The Dolphins" },
+  { lon:-13.80, lat:44.40, draw:"pirateShip", s:0.95, voice:"The Pirate Ship" },
+  { lon:-16.40, lat:43.00, draw:"compass", s:0.95, voice:"The Compass Rose" },
+  { lon:-13.40, lat:42.00, draw:"mermaid", s:0.9, voice:"The Mermaid" },
+  { lon: -3.90, lat:41.20, draw:"bull", s:0.9, voice:"The Bull" },
+  { lon:-15.00, lat:40.40, draw:"turtle", s:0.85, voice:"The Turtle" },
+  { lon: -7.30, lat:40.40, draw:"windmill", s:0.88, voice:"The Windmill" },
+  { lon:-13.60, lat:39.10, draw:"sardines", s:1.0, voice:"The Sardines" },
+  { lon: -7.85, lat:39.05, draw:"tram", s:0.8, voice:"The Tram" },
+  { lon: -6.55, lat:38.20, draw:"orangeTree", s:0.8, voice:"The Orange Tree" },
+  { lon: -4.95, lat:37.70, draw:"guitar", s:0.8, voice:"The Guitar" },
+  { lon:-15.30, lat:37.70, draw:"crab", s:0.85, voice:"The Crab" },
+  { lon: -5.40, lat:35.60, draw:"camel", s:0.92, voice:"The Camel" },
+  { lon:-13.30, lat:35.40, draw:"sun", s:1.0, voice:"The Sun" },
 
-  /* closer in */
-  { lon:1.50,   lat:53.50, draw:"seagulls",   s:.8,   voice:"The Seagulls" },
-
-  /* land */
-  { lon:-4.40,  lat:56.60, draw:"nessie",     s:.95,  voice:"Nessie" },
-  { lon:-7.00,  lat:52.20, draw:"pint",       s:.9,   voice:"The Pint" },
-  { lon:2.35,   lat:48.86, draw:"eiffel",     s:.95,  voice:"The Eiffel Tower" },
-  { lon:-3.40,  lat:40.40, draw:"bull",       s:.9,   voice:"The Bull" },
-  { lon:-5.60,  lat:37.60, draw:"guitar",     s:.8,   voice:"The Guitar" },
-  { lon:-7.00,  lat:40.80, draw:"windmill",   s:.88,  voice:"The Windmill" },
-  { lon:-7.40,  lat:38.95, draw:"tram",       s:.80,  voice:"The Tram" },
-  { lon:-5.60,  lat:39.60, draw:"orangeTree", s:.8,   voice:"The Orange Tree" }
-
-  /* Benched (not on the map): A Cloud, The Other Cloud, The Crab,
-     The Compass Rose, The Turtle, The Sardines, The Camel. To bring one back,
-     add it here and to the ADVENT list. */
+  /* Benched (not on the map): A Cloud, The Other Cloud. */
 ];
 
 /* sea labels, hand-lettered on the chart */
@@ -1006,36 +1005,35 @@ function register(node, voice, x, y, artBox, sheetGroup){
    AND from the SCENERY list above.
    =================================================================== */
 const ADVENT = [
-  "Big Ben",          // day  0 - London, the send-off
-  "The Rain Cloud",   // day  1 - grey Britain, waving you off
-  "Nessie",           // day  2 - Scotland
-  "The Pint",         // day  3 - Ireland
-  "The Seagulls",     // day  4 - following you out to sea
-  "The Kraken",       // day  5 - the deep Atlantic
-  "The Eiffel Tower", // day  6 - passing France
-  "The Sea Monster",  // day  7 - mid Atlantic
-  "The Whale",        // day  8 - mid Atlantic
-  "The Dolphins",     // day  9
-  "The Pirate Ship",  // day 10
-  "The Mermaid",      // day 11
-  "The Bull",         // day 12 - Spain
-  "The Windmill",     // day 13 - central Portugal
-  "The Tram",         // day 14 - Lisbon
-  "The Orange Tree",  // day 15 - southern Portugal
-  "The Guitar",       // day 16 - Seville
-  "The Sun",          // day 17 - waiting off the Algarve
-  "The Stork"         // day 18 - arrival at the Algarve
+  ["Big Ben", "The Rain Cloud", "Nessie", "The Pint", "The Kraken", "The Seagulls"],  // day 0 - the send-off, all at once
+  ["The Sea Monster"],        // day 1
+  ["The Eiffel Tower"],       // day 2
+  ["The Whale"],              // day 3
+  ["The Dolphins"],           // day 4
+  ["The Pirate Ship"],        // day 5
+  ["The Compass Rose"],       // day 6
+  ["The Mermaid"],            // day 7
+  ["The Bull"],               // day 8
+  ["The Turtle"],             // day 9
+  ["The Windmill"],           // day 10
+  ["The Sardines"],           // day 11
+  ["The Tram"],               // day 12
+  ["The Orange Tree"],        // day 13
+  ["The Guitar"],             // day 14
+  ["The Crab"],               // day 15
+  ["The Camel"],              // day 16
+  ["The Sun"],                // day 17
+  ["The Stork"]               // day 18 - arrival
 ];
 const LAST_DAY = ADVENT.length - 1;
-ADVENT.forEach((name, i) => { VOICE_DAY[name] = i; });
+ADVENT.forEach((names, day) => names.forEach(n => { VOICE_DAY[n] = day; }));
 
-/* every placed character, in calendar order */
-const CAST = ADVENT.filter(n => VOICE_NODE[n]);
+/* every placed character, flattened in calendar order */
+const CAST = ADVENT.flat().filter(n => VOICE_NODE[n]);
 
 const TRIP_DAYS = Math.round(SPAN / DAY);
 if (LAST_DAY !== TRIP_DAYS)
-  console.warn(`ADVENT has ${ADVENT.length} entries for a ${TRIP_DAYS}-day trip; ` +
-               `ideally ${TRIP_DAYS + 1} (one per day plus arrival).`);
+  console.warn(`ADVENT covers days 0..${LAST_DAY} but the trip is ${TRIP_DAYS} days long.`);
 CAST.forEach(n => { if (VOICE_DAY[n] === undefined) console.warn(`${n} is on the map but not in ADVENT.`); });
 
 /* day helpers */
@@ -1043,6 +1041,13 @@ const dayOf   = day => new Date(ANCHOR + day * DAY);
 const noonOf  = day => ANCHOR + day * DAY + DAY / 2;
 const todayIndex = () => dayIndex(virtualNow());
 const clampDay   = d => Math.max(0, Math.min(LAST_DAY, d));
+
+/* who speaks on a given day: the first placed name in that day's advent slot
+   (day 0 has the whole send-off cluster; Big Ben opens). */
+const speakerForDay = day => {
+  const names = ADVENT[clampDay(day)] || [];
+  return names.find(n => VOICE_NODE[n]) || CAST[CAST.length - 1];
+};
 
 /* A character's message, rendered as it read on THEIR day (noon), so poking an
    old one is a little trip back in time and today's reads the same either way. */
@@ -1528,7 +1533,7 @@ function render(){
   const d = clampDay(dayIndex(t));
   if (d !== renderedDay){
     renderedDay = d;
-    todayVoice = ADVENT[d];
+    todayVoice = speakerForDay(d);
     todayLine  = messageFor(todayVoice);
     todayHint  = d >= LAST_DAY
       ? "That's everyone. Go and enjoy it."

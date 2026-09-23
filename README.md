@@ -78,30 +78,34 @@ creature from the chart also removes it from the rotation.
 
 ## How the journey works — an advent calendar
 
-**One character appears per day, in a fixed order**, like an advent calendar. On
-their day their curtain lifts and they say their one message automatically. They
-then stay on the map: poke them any time afterwards and they repeat what they said
-on their day (a little out of date on purpose — a small trip back in time).
-Characters whose day hasn't come yet stay behind a curtain and can't be poked;
-poking a curtain tells you, anonymously, the date it lifts.
+Characters appear over the course of the trip, following the flamingos south.
 
-Two files drive this:
+- **Day 0 — the send-off.** A cluster around the UK & home waters (Big Ben, the Rain
+  Cloud, Nessie, the Guinness, the Kraken, the Seagulls) is on the map from the start.
+- **One new character per day after that**, in order, heading south down the route to
+  the Algarve. On their day their curtain lifts and they say their one message.
+- Once revealed a character stays put; poke them any time to hear their line again
+  (frozen as it read on their day). Characters whose day hasn't come sit behind a
+  curtain and can't be poked — poking one just tells you, anonymously, the date it lifts.
 
-- **`index.html` → `ADVENT`** is the ordered list of who appears on which day. Day 0
-  is the anchor date; the last entry appears on arrival. Re-order the list to
-  re-order the calendar. This is the single source of truth for *when*.
-- **`index.html` → `SCENERY` / `places`** set *where* each character sits on the map.
-- **`characters.js`** holds *what* each one says — one `message` each.
+Because the reveal order runs strictly north→south along the route, every curtain is
+always *ahead* of the flamingos — you never see an unopened character behind you.
 
-To keep a character but move their day, move them in `ADVENT`. To bench one, remove
-them from both `ADVENT` and `SCENERY`. Seven are benched already (A Cloud, The Other
-Cloud, The Crab, The Compass Rose, The Turtle, The Sardines, The Camel) so the
-19 remaining fill one-per-day across the 18-day trip plus arrival.
+Three files drive it:
 
-A message is rendered as it read at **noon on that character's day**, so `{days}`
-matches the countdown that day and a poked past character shows its historical value.
+- **`index.html` → `ADVENT`** — the ordered calendar. Element 0 is the day-0 cluster (a
+  list of names); each later element is one day's single character; the last is arrival.
+  This is the one source of truth for *when*.
+- **`index.html` → `SCENERY` / `places`** — *where* each character sits. Positions run
+  north→south with the calendar, sea characters west of the route and land landmarks
+  east of it, so nothing collides and nothing sits on the path.
+- **`characters.js`** — *what* each says, one `message` each.
 
-## Test and demo parameters## Test and demo parameters
+24 characters are placed (a 6-strong send-off + 17 down the route + arrival); A Cloud
+and The Other Cloud are benched. A message renders as it read at noon on that
+character's day, so `{days}` matches the countdown that day.
+
+## Test and demo parameters## Test and demo parameters## Test and demo parameters
 ## Test and demo parameters
 
 A countdown is almost impossible to inspect — it shows one moment and changes

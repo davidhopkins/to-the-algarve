@@ -1,129 +1,91 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    characters.js — every word the chart says.
 
-   ── How it works now ──────────────────────────────────────────────────────
-   One character appears per day, like an advent calendar, in the order below.
-   On their day their curtain lifts and they say their ONE message. After that
-   they stay on the map: poke them any time and they repeat what they said on
-   their day (so it goes a little out of date — that is on purpose, a small trip
-   back in time). Characters whose day has not arrived stay behind a curtain and
-   cannot be poked.
+   ── How it works ──────────────────────────────────────────────────────────
+   An advent calendar. The send-off cluster (day 0) is on the map from the start.
+   After that ONE new character appears per day, heading south down the route, in
+   the order below. On their day their curtain lifts and they say their one
+   message. Afterwards they stay put: poke them any time to hear it again (frozen
+   as it read on their day). Characters whose day hasn't come sit behind a curtain
+   and can't be poked.
 
-   So: one message per character. That is the only thing to write.
+   One message per character — that's all there is to write.
 
-   ── Placeholders you can use in a message ─────────────────────────────────
-     {name}     one of the two travellers, picked per day    -> "David"
-     {other}    whichever one {name} isn't                   -> "Freya"
-     {both}     both of them                                 -> "David and Freya"
-     {days}     days left on that character's day            -> "12 days" / "one day"
-                (matches the big countdown number that day)
-     {percent}  progress that day, as a whole number         -> "63"
-     {dest}     where you are going, from CONFIG             -> "Algarve"
+   ── Placeholders ──────────────────────────────────────────────────────────
+     {name} {other} {both}   the travellers
+     {days}                  days left on that character's day (matches the tag)
+     {percent}               progress that day, whole number
+     {dest}                  the destination from CONFIG (currently "Algarve")
 
    ── Changing the calendar ─────────────────────────────────────────────────
-   The ORDER and DATES are set by the ADVENT list in index.html, not here. The
-   dates in the comments below assume the current trip (22 Sep -> 10 Oct 2026).
-   Edit the words here; edit ADVENT (and SCENERY) in index.html to change who
-   appears when, or to bring back a benched character.
-
-   Benched for now (not on the map): A Cloud, The Other Cloud, The Crab,
-   The Compass Rose, The Turtle, The Sardines, The Camel.
+   ORDER and DATES come from the ADVENT list in index.html, and positions from
+   SCENERY there. Edit words here. Dates below assume the 22 Sep → 10 Oct 2026
+   trip. Benched (not on the map): A Cloud, The Other Cloud.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 window.CHARACTERS = {
 
-  /* Day  1 · Tue 22 Sep — London, the send-off */
-  "Big Ben": {
-    message: "Hello {both}! Big Ben says there's {days} left until you touch down in Portugal. Whoop!"
-  },
+  /* ── Day 0 · Tue 22 Sept · the send-off, all on screen at launch ── */
+  "Big Ben": { message: "Hello {both}! Big Ben says there's {days} left until you touch down in Portugal. Whoop!" },
+  "The Rain Cloud": { message: "Rain clouds only exist over here!" },
+  "Nessie": { message: "If you want to see Nessie, you'll have to plan another trip..." },
+  "The Pint": { message: "AF Guinesses yeah!" },
+  "The Kraken": { message: "Careful! Monsters lurking over here..." },
+  "The Seagulls": { message: "OI. {both}. Chips?" },
 
-  /* Day  2 · Wed 23 Sep — grey Britain, waving you off */
-  "The Rain Cloud": {
-    message: "Rain clouds only exist over here!"
-  },
+  /* ── one per day, heading south ── */
 
-  /* Day  3 · Thu 24 Sep — Scotland */
-  "Nessie": {
-    message: "If you want to see Nessie, you'll have to plan another trip..."
-  },
+  /* Day 1 · Wed 23 Sept */
+  "The Sea Monster": { message: "RAAAAR. ...Sorry. {days} left, by the way. RAAAAR." },
 
-  /* Day  4 · Fri 25 Sep — Ireland */
-  "The Pint": {
-    message: "AF Guinesses yeah!"
-  },
+  /* Day 2 · Thu 24 Sept */
+  "The Eiffel Tower": { message: "You pass by. You do not stop. Typical. {days}, then." },
 
-  /* Day  5 · Sat 26 Sep — following you out to sea */
-  "The Seagulls": {
-    message: "OI. {both}. Chips?"
-  },
+  /* Day 3 · Fri 25 Sept */
+  "The Whale": { message: "The sea does not hurry, and yet everything arrives. {days}." },
 
-  /* Day  6 · Sun 27 Sep — the deep Atlantic */
-  "The Kraken": {
-    message: "Careful! Monsters lurking over here..."
-  },
+  /* Day 4 · Sat 26 Sept */
+  "The Dolphins": { message: "{both}! Race you! ...No? Fine. We'll just do laps then." },
 
-  /* Day  7 · Mon 28 Sep — passing France */
-  "The Eiffel Tower": {
-    message: "You pass by. You do not stop. Typical. {days}, then."
-  },
+  /* Day 5 · Sun 27 Sept */
+  "The Pirate Ship": { message: "Arr. {days} till landfall. Ye've the patience of a barnacle." },
 
-  /* Day  8 · Tue 29 Sep — mid Atlantic */
-  "The Sea Monster": {
-    message: "RAAAAR. ...Sorry. {days} left, by the way. RAAAAR."
-  },
+  /* Day 6 · Mon 28 Sept */
+  "The Compass Rose": { message: "North is up, Faro is down. You are doing this correctly. {days} left." },
 
-  /* Day  9 · Wed 30 Sep — mid Atlantic */
-  "The Whale": {
-    message: "The sea does not hurry, and yet everything arrives. {days}."
-  },
+  /* Day 7 · Tue 29 Sept */
+  "The Mermaid": { message: "Factor 50, {name}. I have seen what that sun does to a shoulder." },
 
-  /* Day 10 · Thu  1 Oct */
-  "The Dolphins": {
-    message: "{both}! Race you! ...No? Fine. We'll just do laps then."
-  },
+  /* Day 8 · Wed 30 Sept */
+  "The Bull": { message: "{days}. I have stood in this field for every one of them." },
 
-  /* Day 11 · Fri  2 Oct */
-  "The Pirate Ship": {
-    message: "Arr. {days} till landfall. Ye've the patience of a barnacle."
-  },
+  /* Day 9 · Thu 1 Oct */
+  "The Turtle": { message: "I'll get there eventually. So will you. {days}." },
 
-  /* Day 12 · Sat  3 Oct */
-  "The Mermaid": {
-    message: "Factor 50, {name}. I have seen what that sun does to a shoulder."
-  },
+  /* Day 10 · Fri 2 Oct */
+  "The Windmill": { message: "Round and round, {both}. Round and round. {days} to go." },
 
-  /* Day 13 · Sun  4 Oct — Spain */
-  "The Bull": {
-    message: "{days}. I have stood in this field for every one of them."
-  },
+  /* Day 11 · Sat 3 Oct */
+  "The Sardines": { message: "Psst. {both}. When you get here - maybe order the chicken?" },
 
-  /* Day 14 · Mon  5 Oct — central Portugal */
-  "The Windmill": {
-    message: "Round and round, {both}. Round and round. {days} to go."
-  },
+  /* Day 12 · Sun 4 Oct */
+  "The Tram": { message: "Lisbon, {both}. I'll take you up the hill when you're passing. Mind the step." },
 
-  /* Day 15 · Tue  6 Oct — Lisbon */
-  "The Tram": {
-    message: "Lisbon, {both}. I'll take you up the hill when you're passing. Mind the step."
-  },
+  /* Day 13 · Mon 5 Oct */
+  "The Orange Tree": { message: "There'll be oranges when you get here, {name}. There are always oranges." },
 
-  /* Day 16 · Wed  7 Oct — southern Portugal */
-  "The Orange Tree": {
-    message: "There'll be oranges when you get here, {name}. There are always oranges."
-  },
+  /* Day 14 · Tue 6 Oct */
+  "The Guitar": { message: "{percent}% done. Shall I play something sad about it?" },
 
-  /* Day 17 · Thu  8 Oct — Seville */
-  "The Guitar": {
-    message: "{percent}% done. Shall I play something sad about it?"
-  },
+  /* Day 15 · Wed 7 Oct */
+  "The Crab": { message: "{days}. Sideways. That's how I'd be doing it. Sideways." },
 
-  /* Day 18 · Fri  9 Oct — waiting off the Algarve */
-  "The Sun": {
-    message: "I'm holding it at 24 degrees for you. Don't be late."
-  },
+  /* Day 16 · Thu 8 Oct */
+  "The Camel": { message: "OI. {both}. You're nearly there. I can see it from where I'm standing." },
 
-  /* Day 19 · Sat 10 Oct — arrival */
-  "The Stork": {
-    message: "That's the {dest}! {both}, shuffle up - there's room on the wall for you."
-  }
+  /* Day 17 · Fri 9 Oct */
+  "The Sun": { message: "I'm holding it at 24 degrees for you. Don't be late." },
+
+  /* Day 18 · Sat 10 Oct · arrival */
+  "The Stork": { message: "That's the {dest}! {both}, shuffle up - there's room on the wall for you." }
 };
