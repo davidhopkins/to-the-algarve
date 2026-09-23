@@ -365,12 +365,13 @@ const VOICES = Object.assign({}, window.CHARACTERS || {});
    not been written yet. Better a visible placeholder than a blank map. */
 function ensureVoice(name){
   const v = VOICES[name] || {};
-  const lines = Array.isArray(v.lines) ? v.lines.filter(Boolean) : [];
-  const pokes = Array.isArray(v.pokes) ? v.pokes.filter(Boolean) : [];
+  /* One message per character now. Accept `message`, but fall back to the old
+     `lines`/`pokes` shape so an un-migrated characters.js still works. */
+  let msg = typeof v.message === "string" && v.message.trim() ? v.message : "";
+  if (!msg && Array.isArray(v.lines) && v.lines.filter(Boolean).length) msg = v.lines.filter(Boolean)[0];
+  if (!msg && Array.isArray(v.pokes) && v.pokes.filter(Boolean).length) msg = v.pokes.filter(Boolean)[0];
   VOICES[name] = {
-    ...v,                                  /* keep extras, e.g. the stork's `arrival` */
-    lines: lines.length ? lines : [`(${name} hasn't been given anything to say yet - see characters.js)`],
-    pokes: pokes.length ? pokes : ["..."]
+    message: msg || `(${name} has no message yet - see characters.js)`
   };
 }
 
@@ -725,25 +726,17 @@ const SCENERY = [
   /* weather */
   { lon:-2.60,  lat:54.60, draw:"rainCloud",  s:1,    voice:"The Rain Cloud" },
   { lon:-13.80, lat:39.68, draw:"sun",        s:1,    voice:"The Sun" },
-  { lon:4.50,   lat:54.00, draw:"cloud",      s:.8,   voice:"A Cloud" },
-  { lon:2.00,   lat:56.20, draw:"cloud",      s:.65,  voice:"The Other Cloud" },
 
-  /* the deep Atlantic - column A */
+  /* the deep Atlantic */
   { lon:-13.00, lat:51.50, draw:"kraken",     s:.9,   voice:"The Kraken" },
   { lon:-16.00, lat:50.22, draw:"seaMonster", s:1.05, voice:"The Sea Monster" },
   { lon:-17.00, lat:46.01, draw:"dolphins",   s:.9,   voice:"The Dolphins" },
   { lon:-16.60, lat:42.60, draw:"mermaid",    s:.9,   voice:"The Mermaid" },
-  { lon:-16.80, lat:38.50, draw:"crab",       s:.85,  voice:"The Crab" },
-  { lon:-16.90, lat:35.80, draw:"compass",    s:1,    voice:"The Compass Rose" },
-
-  /* the deep Atlantic - column B */
   { lon:-12.40, lat:48.11, draw:"whale",      s:.92,  voice:"The Whale" },
   { lon:-13.60, lat:43.90, draw:"pirateShip", s:.95,  voice:"The Pirate Ship" },
-  { lon:-12.30, lat:35.47, draw:"turtle",     s:.85,  voice:"The Turtle" },
 
   /* closer in */
   { lon:1.50,   lat:53.50, draw:"seagulls",   s:.8,   voice:"The Seagulls" },
-  { lon:-3.00,  lat:36.60, draw:"sardines",   s:1,    voice:"The Sardines" },
 
   /* land */
   { lon:-4.40,  lat:56.60, draw:"nessie",     s:.95,  voice:"Nessie" },
@@ -753,8 +746,11 @@ const SCENERY = [
   { lon:-5.60,  lat:37.60, draw:"guitar",     s:.8,   voice:"The Guitar" },
   { lon:-7.00,  lat:40.80, draw:"windmill",   s:.88,  voice:"The Windmill" },
   { lon:-7.40,  lat:38.95, draw:"tram",       s:.80,  voice:"The Tram" },
-  { lon:-5.60,  lat:39.60, draw:"orangeTree", s:.8,   voice:"The Orange Tree" },
-  { lon:-1.00,  lat:35.30, draw:"camel",      s:.92,  voice:"The Camel" }
+  { lon:-5.60,  lat:39.60, draw:"orangeTree", s:.8,   voice:"The Orange Tree" }
+
+  /* Benched (not on the map): A Cloud, The Other Cloud, The Crab,
+     The Compass Rose, The Turtle, The Sardines, The Camel. To bring one back,
+     add it here and to the ADVENT list. */
 ];
 
 /* sea labels, hand-lettered on the chart */
@@ -925,24 +921,8 @@ const ROUTE_LEN = donePath.getTotalLength();
 const VOICE_POS  = {};                      // who -> [x,y] in viewBox units
 const VOICE_NODE = {};                      // who -> the group that draws them
 const VOICE_BOX  = {};                      // who -> a STABLE art box, measured once
-const VOICE_REACH = {};                     // who -> progress at which they're reached
-const POKE_COUNT = {};
+const VOICE_DAY  = {};                      // who -> the day they appear (set from ADVENT below)
 const SHEETED = {};                         // who -> their stage-curtain group
-
-/* The lilo travels north to south, so a character is "reached" at the moment the
-   flamingos draw level with their latitude. Everything north of London is
-   therefore visible from the start, and Africa turns up last. */
-const ROUTE_YS = (() => {
-  const n = 400, arr = [];
-  for (let i = 0; i <= n; i++) arr.push(donePath.getPointAtLength(ROUTE_LEN * i / n).y);
-  return arr;
-})();
-function reachFor(y){
-  const n = ROUTE_YS.length - 1;
-  for (let i = 0; i <= n; i++) if (ROUTE_YS[i] >= y) return i / n;
-  return 1;
-}
-const reachDate = reach => new Date(ANCHOR + reach * SPAN);
 const DATE_FMT = new Intl.DateTimeFormat("en-GB", { weekday:"long", day:"numeric", month:"long" });
 
 function register(node, voice, x, y, artBox, sheetGroup){
@@ -950,8 +930,6 @@ function register(node, voice, x, y, artBox, sheetGroup){
   VOICE_NODE[voice]  = node;
   VOICE_POS[voice]   = [x, y];
   VOICE_BOX[voice]   = artBox;
-  VOICE_REACH[voice] = reachFor(y);
-  POKE_COUNT[voice]  = 0;
   if (sheetGroup) SHEETED[voice] = sheetGroup;
 
   node.setAttribute("class", "poke");
@@ -1014,14 +992,66 @@ function register(node, voice, x, y, artBox, sheetGroup){
     const bb = inner.getBBox();
     register(wrap, voice, x, y, { x:x+bb.x, y:y+bb.y, w:bb.width, h:bb.height }, null);
   };
-  put(CONFIG.origin, "bigBen",   "Big Ben",   16, 15, "start");
+  put(CONFIG.origin, "bigBen",     "Big Ben",   16, 15, "start");
   put(CONFIG.dest,   "algarveArch", "The Stork", -23, 13, "end");
-  VOICE_REACH["Big Ben"]   = -0.0001;  // they set off from here, so he opens the show
-  VOICE_REACH["The Stork"] = 1;     // and the stork only talks once you land
 })();
 
-/* every character, in the order the flamingos meet them */
-const CAST = Object.keys(VOICE_REACH).sort((a,b) => VOICE_REACH[a] - VOICE_REACH[b]);
+/* ===================================================================
+   THE ADVENT CALENDAR - who appears on which day.
+   One new character per day, in this order, starting from the anchor date.
+   Day 0 is the anchor (22 Sep); the last entry appears on arrival day.
+   This array is the single source of truth for WHEN each character shows;
+   their position on the map and their words are set elsewhere. To re-order
+   the calendar, re-order this list. To bench a character, remove them here
+   AND from the SCENERY list above.
+   =================================================================== */
+const ADVENT = [
+  "Big Ben",          // day  0 - London, the send-off
+  "The Rain Cloud",   // day  1 - grey Britain, waving you off
+  "Nessie",           // day  2 - Scotland
+  "The Pint",         // day  3 - Ireland
+  "The Seagulls",     // day  4 - following you out to sea
+  "The Kraken",       // day  5 - the deep Atlantic
+  "The Eiffel Tower", // day  6 - passing France
+  "The Sea Monster",  // day  7 - mid Atlantic
+  "The Whale",        // day  8 - mid Atlantic
+  "The Dolphins",     // day  9
+  "The Pirate Ship",  // day 10
+  "The Mermaid",      // day 11
+  "The Bull",         // day 12 - Spain
+  "The Windmill",     // day 13 - central Portugal
+  "The Tram",         // day 14 - Lisbon
+  "The Orange Tree",  // day 15 - southern Portugal
+  "The Guitar",       // day 16 - Seville
+  "The Sun",          // day 17 - waiting off the Algarve
+  "The Stork"         // day 18 - arrival at the Algarve
+];
+const LAST_DAY = ADVENT.length - 1;
+ADVENT.forEach((name, i) => { VOICE_DAY[name] = i; });
+
+/* every placed character, in calendar order */
+const CAST = ADVENT.filter(n => VOICE_NODE[n]);
+
+const TRIP_DAYS = Math.round(SPAN / DAY);
+if (LAST_DAY !== TRIP_DAYS)
+  console.warn(`ADVENT has ${ADVENT.length} entries for a ${TRIP_DAYS}-day trip; ` +
+               `ideally ${TRIP_DAYS + 1} (one per day plus arrival).`);
+CAST.forEach(n => { if (VOICE_DAY[n] === undefined) console.warn(`${n} is on the map but not in ADVENT.`); });
+
+/* day helpers */
+const dayOf   = day => new Date(ANCHOR + day * DAY);
+const noonOf  = day => ANCHOR + day * DAY + DAY / 2;
+const todayIndex = () => dayIndex(virtualNow());
+const clampDay   = d => Math.max(0, Math.min(LAST_DAY, d));
+
+/* A character's message, rendered as it read on THEIR day (noon), so poking an
+   old one is a little trip back in time and today's reads the same either way. */
+function messageFor(name){
+  const day = clampDay(VOICE_DAY[name] ?? todayIndex());
+  const t = noonOf(day);
+  const raw = (VOICES[name] && VOICES[name].message) || `(${name} has no message yet)`;
+  return fillTemplate(raw, t, progress(t));
+}
 
 /* ===================================================================
    THE CRAFT - two flamingos, one double lilo, facing west
@@ -1360,70 +1390,31 @@ function sayToday(){
 }
 
 function tapVoice(voice, node){
-  const reached = progress(virtualNow()) >= VOICE_REACH[voice];
-  if (reached){
-    const pokes = VOICES[voice].pokes;
-    const n = POKE_COUNT[voice]++ % pokes.length;
-    say(voice, pokes[n], "Tap anything on the chart");
+  const day = VOICE_DAY[voice];
+  const revealed = todayIndex() >= day;
+  if (revealed){
+    /* replay what they said on their day - out of date on purpose */
+    const isToday = clampDay(day) === clampDay(todayIndex());
+    say(voice, messageFor(voice),
+        isToday ? "Today's visitor" : `First said ${DATE_FMT.format(dayOf(day))}`);
   } else {
-    /* deliberately anonymous - naming them would spoil the reveal */
-    const when = DATE_FMT.format(reachDate(VOICE_REACH[voice]));
+    /* anonymous - naming them would spoil the reveal */
     say("Behind the curtain",
-        `Too early. Whoever is behind this curtain doesn't meet the flamingos until ${when}.`,
-        "Come back then for the curtain call", voice);
+        `Too early. Whoever is behind this curtain appears on ${DATE_FMT.format(dayOf(day))}.`,
+        "Come back then and the curtain lifts", voice);
   }
   node.classList.add("talking");
   setTimeout(() => node.classList.remove("talking"), 750);
   clearTimeout(pokeTimer);
-  pokeTimer = setTimeout(() => { pokeTimer = null; sayToday(); }, reached ? 4200 : 5600);
+  pokeTimer = setTimeout(() => { pokeTimer = null; sayToday(); }, revealed ? 4200 : 5600);
 }
 
-/* ── who speaks today ──────────────────────────────────────────────
-   A character is met when the flamingos draw level with them. Whoever you have
-   just met speaks that day; on a day you meet nobody new, the line comes from
-   someone you have already met, least recently spoken first. So the chart both
-   progresses and keeps its earlier company in play.                          */
-const dayProgress = d => clamp01((d * DAY) / SPAN);
-
-function scheduleFor(upto){
-  const lastSpoke = new Map(), tally = new Map();
-  let pick = null;
-  for (let d = 0; d <= upto; d++){
-    /* Judge this by the progress at the START of the day. Using the end of the
-       day let a character be today's speaker while still under their sheet,
-       because the flamingos only draw level with them that evening. */
-    const pNow  = dayProgress(d);
-    const pPrev = d === 0 ? -1 : dayProgress(d - 1);
-    const met   = CAST.filter(v => VOICE_REACH[v] <= pNow);
-    const fresh = CAST.filter(v => VOICE_REACH[v] > pPrev && VOICE_REACH[v] <= pNow);
-    let who;
-    let isFresh = false;
-    if (fresh.length){ who = fresh[0]; isFresh = true; }   // CAST is in meeting order
-    else if (met.length){
-      const rnd = mulberry32(hashStr(CONFIG.anchor + "::pick::" + d));
-      who = met
-        .map(v => ({ v, last: lastSpoke.has(v) ? lastSpoke.get(v) : -1e9, jitter: rnd() }))
-        .sort((a, b) => a.last - b.last || a.jitter - b.jitter)[0].v;
-    } else who = CAST[0];
-    pick = { who, nth: tally.get(who) || 0, fresh: isFresh };
-    lastSpoke.set(who, d);
-    tally.set(who, (tally.get(who) || 0) + 1);
-  }
-  return pick;
-}
-
-/* each character's own lines are shuffled once and then worked through in
-   order, so nobody repeats themselves until they've run out of things to say */
-function lineFor(voice, nth, t, p){
-  const deck = shuffled(VOICES[voice].lines, "lines::" + voice);
-  return fillTemplate(deck[nth % deck.length], t, p);
-}
-
-/* show or hide each character according to how far the flamingos have got */
+/* show or hide each character according to the calendar day reached */
 const revealedNow = {};
-function updateReveals(p, animate){
+function updateReveals(animate){
+  const today = todayIndex();
   for (const voice of CAST){
-    const show = p >= VOICE_REACH[voice];
+    const show = today >= VOICE_DAY[voice];
     if (revealedNow[voice] === show) continue;
     revealedNow[voice] = show;
     const node  = VOICE_NODE[voice];
@@ -1447,7 +1438,7 @@ function updateReveals(p, animate){
     } else {
       art.classList.add("art-hidden");
       cover.classList.remove("gone", "open");
-      node.setAttribute("aria-label", "Behind a curtain - the flamingos haven't reached it yet");
+      node.setAttribute("aria-label", "Behind a curtain - not opened yet");
     }
   }
 }
@@ -1530,27 +1521,18 @@ function render(){
   if (CAM.active && CAM.follow) frameOnJourney();
 
   /* who is visible, and who is talking */
-  updateReveals(p, revealsPrimed);
+  updateReveals(revealsPrimed);
   revealsPrimed = true;
 
-  const d = dayIndex(t);
+  /* one character per day, straight from the advent calendar */
+  const d = clampDay(dayIndex(t));
   if (d !== renderedDay){
     renderedDay = d;
-    if (arrived){
-      todayVoice = "The Stork";
-      /* the big moment is written in characters.js, like everything else */
-      todayLine  = fillTemplate(
-        (VOICES["The Stork"] && VOICES["The Stork"].arrival) ||
-        "That's {dest}! {both}, you made it.", t, p);
-      todayHint  = "That's the last of them. Go and enjoy it.";
-    } else {
-      const pick = scheduleFor(Math.max(0, d));
-      todayVoice = pick.who;
-      todayLine  = lineFor(pick.who, pick.nth, t, p);
-      todayHint  = pick.fresh
-        ? "Just drew level with them - someone new tomorrow"
-        : "Someone else will have a word tomorrow";
-    }
+    todayVoice = ADVENT[d];
+    todayLine  = messageFor(todayVoice);
+    todayHint  = d >= LAST_DAY
+      ? "That's everyone. Go and enjoy it."
+      : "A new one appears tomorrow";
     if (!pokeTimer) sayToday();
   }
 }

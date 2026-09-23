@@ -76,46 +76,32 @@ flamingos, which is what keeps everything in register.
 A voice with no matching scenery entry is skipped rather than breaking, so removing a
 creature from the chart also removes it from the rotation.
 
-## How the journey works
+## How the journey works — an advent calendar
 
-This is the heart of it. **Characters wait behind a closed stage curtain until the
-flamingos draw level with them.**
+**One character appears per day, in a fixed order**, like an advent calendar. On
+their day their curtain lifts and they say their one message automatically. They
+then stay on the map: poke them any time afterwards and they repeat what they said
+on their day (a little out of date on purpose — a small trip back in time).
+Characters whose day hasn't come yet stay behind a curtain and can't be poked;
+poking a curtain tells you, anonymously, the date it lifts.
 
-Every character has a `reach` — the point in the journey at which the lilo passes their
-latitude, worked out by walking the route path and finding where it first dips to their
-y coordinate. Anything north of London is visible from day one; Africa turns up last.
-Until you reach them, a character waits behind a red curtain with a gold rail, and
-clicking it says *"Too early. Whoever is behind this curtain doesn't meet the flamingos
-until Tuesday 6 October."* It never names them — that would spoil the reveal you've been
-waiting for.
+Two files drive this:
 
-If the flamingos draw level with someone while the page is open, **the curtain draws back
-and the character pops in** — the two halves part, then the rail lifts away. On a fresh
-load, already-reached characters are simply there, with no animation.
+- **`index.html` → `ADVENT`** is the ordered list of who appears on which day. Day 0
+  is the anchor date; the last entry appears on arrival. Re-order the list to
+  re-order the calendar. This is the single source of truth for *when*.
+- **`index.html` → `SCENERY` / `places`** set *where* each character sits on the map.
+- **`characters.js`** holds *what* each one says — one `message` each.
 
-**Who speaks each day:**
+To keep a character but move their day, move them in `ADVENT`. To bench one, remove
+them from both `ADVENT` and `SCENERY`. Seven are benched already (A Cloud, The Other
+Cloud, The Crab, The Compass Rose, The Turtle, The Sardines, The Camel) so the
+19 remaining fill one-per-day across the 18-day trip plus arrival.
 
-1. If the flamingos drew level with someone new since the start of yesterday, that
-   character speaks — you've just met them.
-2. Otherwise the line comes from someone you've already met, least recently spoken first,
-   so the earlier cast stays in play instead of being left behind.
+A message is rendered as it read at **noon on that character's day**, so `{days}`
+matches the countdown that day and a poked past character shows its historical value.
 
-Each character's own lines are shuffled once (seeded from the anchor date) and then worked
-through in order, so nobody repeats themselves until they've run out of things to say.
-Over the 18-day trip that gives **19 days, 19 different speakers, no repeated lines**,
-with the visible cast growing from 9 to all 26.
-
-Whether someone has been met is judged at the **start** of the day, not the end. Judging
-it at the end let a character be today's speaker while still under their sheet, because
-the lilo only drew level with them that evening.
-
-`pokes` is a separate pool from `lines` in `characters.js`, so tapping around the chart
-can never surface tomorrow's dialogue.
-
-London and Faro never get a curtain — hiding your own destination would break the map —
-but the stork still won't say anything until you land.
-
-## Test and demo parameters
+## Test and demo parameters## Test and demo parameters
 ## Test and demo parameters
 
 A countdown is almost impossible to inspect — it shows one moment and changes
@@ -135,7 +121,7 @@ mistaken for the real countdown.
 The chart is the page. Everything else is either pinned to it or tucked underneath.
 
 - **Wide screens** — the countdown sits on the chart as a cartouche, the voyage bar is
-  pinned across its bottom edge, and the daily line appears as a speech bubble with a
+  pinned across its bottom edge, and the day's character speaks in a speech bubble with a
   tail pointing at whoever said it.
 - **Narrow screens** — a bubble wide enough to read would blanket the map, so below a
   measured chart width of 620px it becomes a caption card under the chart instead. The
