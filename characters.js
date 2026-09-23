@@ -66,26 +66,26 @@ window.CHARACTERS = {
   "The Sun": { message: "I'm holding it at 24 degrees for you. Don't be late." },
 
   /* Day 11 · Sat 3 Oct */
-  "The Sardines": { message: "Psst FreyBae you don't like fish do you?" },
+  "The Sardines": { message: "Psst FreyBae... you don't like fish do you?" },
 
   /* Day 12 · Sun 4 Oct */
-  "The Tram": { message: "" },
+  "The Tram": { message: "All aboard the Freyvid train!" },
 
   /* Day 13 · Mon 5 Oct */
-  "The Swimming Pool": { message: "Cannonball! Come take a dip, {both}. The water's lovely." },
+  "The Swimming Pool": { message: "Get your goggles at the ready 🥽" },
 
   /* Day 14 · Tue 6 Oct */
   "The Portuguese Custard Tart": { message: "{percent}% done. Almost as flaky as me." },
 
   /* Day 15 · Wed 7 Oct */
-  "The Crab": { message: "{days}. Sideways. That's how I'd be doing it. Sideways." },
+  "The Crab": { message: "Nothing wrong with a bit of side-eye 👀" },
 
   /* Day 16 · Thu 8 Oct */
-  "The Camel": { message: "OI. {both}. You're nearly there. I can see it from where I'm standing." },
+  "The Camel": { message: "OI! {both}. You're nearly there. I can see it from where I'm standing." },
 
   /* Day 17 · Fri 9 Oct */
-  "The Surfer": { message: "Catch you on the waves, {both}! {days} until paradise." },
+  "The Surfer": { message: "Wassup my duuudes! Have you seen my 🐢?" },
 
   /* Day 18 · Sat 10 Oct · arrival */
-  "The W Hotel": { message: "That's the {dest}! {both}, shuffle up - there's room inside for you." }
+  "The W Hotel": { message: "Some champers waiting for you at check-in..." }
 };
