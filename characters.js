@@ -36,34 +36,34 @@ window.CHARACTERS = {
   /* ── one per day, heading south ── */
 
   /* Day 1 · Wed 23 Sept */
-  "The Sea Monster": { message: "I am a big scary monster! P.S. only {days} left to go." },
+  "The Sea Monster": { message: "I am a big scary monster!" },
 
   /* Day 2 · Thu 24 Sept */
-  "The Eiffel Tower": { message: "You pass by. You do not stop. Typical. {days}, then." },
+  "The Eiffel Tower": { message: "Bonjour! Why you no visit le me instead? 😭" },
 
   /* Day 3 · Fri 25 Sept */
-  "The Whale": { message: "The sea does not hurry, and yet everything arrives. {days}." },
+  "The Whale": { message: "I used to be a cow 🐮" },
 
   /* Day 4 · Sat 26 Sept */
-  "The Dolphins": { message: "{both}! Race you! ...No? Fine. We'll just do laps then." },
+  "The Dolphins": { message: "{both}! We reckon we can get there in less than {days}. Race?" },
 
   /* Day 5 · Sun 27 Sept */
-  "The Pirate Ship": { message: "Arr. {days} till landfall. Ye've the patience of a barnacle." },
+  "The Pirate Ship": { message: "Arrrrrh! {days} till landfall" },
 
   /* Day 6 · Mon 28 Sept */
-  "The Compass Rose": { message: "North is up, Faro is down. You are doing this correctly. {days} left." },
+  "The Compass Rose": { message: "North is up, Algarve is down. {other} is pretty, and {name} will be brown!" },
 
   /* Day 7 · Tue 29 Sept */
-  "The Mermaid": { message: "Factor 50, {name}. I have seen what that sun does to a shoulder." },
+  "The Mermaid": { message: "Remember your SPF factor 50 {name}!." },
 
   /* Day 8 · Wed 30 Sept */
-  "The Bull": { message: "{days}. I have stood in this field for every one of them." },
+  "The Bull": { message: "¡Arriba, arriba! ¡Ándale, ándale! It's {days} to go. No bull..." },
 
   /* Day 9 · Thu 1 Oct */
-  "The Turtle": { message: "I'll get there eventually. So will you. {days}." },
+  "The Turtle": { message: "Wassup my duuudes! Be sure to catch some waves 🌊" },
 
   /* Day 10 · Fri 2 Oct */
-  "The Windmill": { message: "Round and round, {both}. Round and round. {days} to go." },
+  "The Sun": { message: "I'm holding it at 24 degrees for you. Don't be late." },
 
   /* Day 11 · Sat 3 Oct */
   "The Sardines": { message: "Psst. {both}. When you get here - maybe order the chicken?" },
@@ -72,10 +72,10 @@ window.CHARACTERS = {
   "The Tram": { message: "Lisbon, {both}. I'll take you up the hill when you're passing. Mind the step." },
 
   /* Day 13 · Mon 5 Oct */
-  "The Orange Tree": { message: "There'll be oranges when you get here, {name}. There are always oranges." },
+  "The Swimming Pool": { message: "Cannonball! Come take a dip, {both}. The water's lovely." },
 
   /* Day 14 · Tue 6 Oct */
-  "The Guitar": { message: "{percent}% done. Shall I play something sad about it?" },
+  "The Portuguese Custard Tart": { message: "{percent}% done. Almost as flaky as me." },
 
   /* Day 15 · Wed 7 Oct */
   "The Crab": { message: "{days}. Sideways. That's how I'd be doing it. Sideways." },
@@ -84,7 +84,7 @@ window.CHARACTERS = {
   "The Camel": { message: "OI. {both}. You're nearly there. I can see it from where I'm standing." },
 
   /* Day 17 · Fri 9 Oct */
-  "The Sun": { message: "I'm holding it at 24 degrees for you. Don't be late." },
+  "The Surfer": { message: "Catch you on the waves, {both}! {days} until paradise." },
 
   /* Day 18 · Sat 10 Oct · arrival */
   "The Stork": { message: "That's the {dest}! {both}, shuffle up - there's room on the wall for you." }
