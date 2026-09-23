@@ -36,7 +36,7 @@ window.CHARACTERS = {
   /* ── one per day, heading south ── */
 
   /* Day 1 · Wed 23 Sept */
-  "The Sea Monster": { message: "RAAAAR. ...Sorry. {days} left, by the way. RAAAAR." },
+  "The Sea Monster": { message: "I am a big scary monster! P.S. only {days} left to go." },
 
   /* Day 2 · Thu 24 Sept */
   "The Eiffel Tower": { message: "You pass by. You do not stop. Typical. {days}, then." },

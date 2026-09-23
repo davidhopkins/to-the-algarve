@@ -333,7 +333,7 @@
    =================================================================== */
 const CONFIG = {
   anchor:    "2026-09-22T00:00:00",   // 0% - the paddle begins
-  departure: "2026-10-10T00:00:00",   // 100% - the holiday begins
+  departure: "2026-10-10T15:40:00",   // 100% - wheels down / the holiday begins
 
   origin: { name:"London", lat: 51.148, lon: -0.190 },
   dest:   { name:"Algarve",   lat: 37.017, lon: -7.933 },
@@ -1031,7 +1031,7 @@ ADVENT.forEach((names, day) => names.forEach(n => { VOICE_DAY[n] = day; }));
 /* every placed character, flattened in calendar order */
 const CAST = ADVENT.flat().filter(n => VOICE_NODE[n]);
 
-const TRIP_DAYS = Math.round(SPAN / DAY);
+const TRIP_DAYS = Math.floor(SPAN / DAY);   // whole days; arrival may be part-way through the last
 if (LAST_DAY !== TRIP_DAYS)
   console.warn(`ADVENT covers days 0..${LAST_DAY} but the trip is ${TRIP_DAYS} days long.`);
 CAST.forEach(n => { if (VOICE_DAY[n] === undefined) console.warn(`${n} is on the map but not in ADVENT.`); });
