@@ -51,10 +51,10 @@ window.CHARACTERS = {
   "The Pirate Ship": { message: "Arrrrrh! {days} till landfall" },
 
   /* Day 6 · Mon 28 Sept */
-  "The Compass Rose": { message: "North is up, Algarve is down. {other} is pretty, and {name} will be brown!" },
+  "The Compass Rose": { message: "North is up, Algarve is down. Freya is pretty, and Dave will be brown!" },
 
   /* Day 7 · Tue 29 Sept */
-  "The Mermaid": { message: "Remember your SPF factor 50 {name}!." },
+  "The Mermaid": { message: "Remember your SPF factor 50 Dave!." },
 
   /* Day 8 · Wed 30 Sept */
   "The Bull": { message: "¡Arriba, arriba! ¡Ándale, ándale! It's {days} to go. No bull..." },
@@ -66,10 +66,10 @@ window.CHARACTERS = {
   "The Sun": { message: "I'm holding it at 24 degrees for you. Don't be late." },
 
   /* Day 11 · Sat 3 Oct */
-  "The Sardines": { message: "Psst. {both}. When you get here - maybe order the chicken?" },
+  "The Sardines": { message: "Psst FreyBae you don't like fish do you?" },
 
   /* Day 12 · Sun 4 Oct */
-  "The Tram": { message: "Lisbon, {both}. I'll take you up the hill when you're passing. Mind the step." },
+  "The Tram": { message: "" },
 
   /* Day 13 · Mon 5 Oct */
   "The Swimming Pool": { message: "Cannonball! Come take a dip, {both}. The water's lovely." },
@@ -87,5 +87,5 @@ window.CHARACTERS = {
   "The Surfer": { message: "Catch you on the waves, {both}! {days} until paradise." },
 
   /* Day 18 · Sat 10 Oct · arrival */
-  "The Stork": { message: "That's the {dest}! {both}, shuffle up - there's room on the wall for you." }
+  "The W Hotel": { message: "That's the {dest}! {both}, shuffle up - there's room inside for you." }
 };

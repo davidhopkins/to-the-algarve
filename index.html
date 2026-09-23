@@ -336,7 +336,7 @@ const CONFIG = {
   departure: "2026-10-10T15:40:00",   // 100% - wheels down / the holiday begins
 
   origin: { name:"London", lat: 51.148, lon: -0.190 },
-  dest:   { name:"Algarve",   lat: 37.017, lon: -7.933 },
+  dest:   { name:"Algarve",   lat: 36.75, lon: -5.40 },
 
   travellers: [
     { name:"David", accessory:"shades" },
@@ -348,7 +348,8 @@ const CONFIG = {
   // sea waypoints, so the lilo never paddles across France
   waypoints: [
     [-1.00, 50.30], [-4.60, 49.30], [-6.60, 48.00], [-8.20, 45.40],
-    [-10.10, 43.10], [-9.90, 41.00], [-9.95, 38.80], [-9.30, 36.80]
+    [-10.10, 43.10], [-9.90, 41.00], [-9.95, 38.80], [-9.30, 36.80],
+    [-7.00, 36.55], [-6.10, 36.30]
   ],
   samplesPerLeg: 18
 };
@@ -661,14 +662,8 @@ const DRAW = {
       <path class="ink" fill="#fffdf6" d="M-17 16 v-22 q17 -12 34 0 v22 Z"/>
       <path class="ink" fill="#34c0cb" d="M-7 16 v-14 q7 -6 14 0 v14 Z"/>
       <path class="ink-thin" d="M-17 -4 h34"/>
-      <g class="drift">
-        <ellipse class="ink" cx="4" cy="-27" rx="8" ry="5.5" fill="#fffdf6"/>
-        <path class="ink" fill="#fffdf6" d="M10 -30 q7 -2 8 -8 q-6 1 -9 4 Z"/>
-        <circle class="ink" cx="-3" cy="-33" r="4.3" fill="#fffdf6"/>
-        <path class="ink" fill="#ff6b57" d="M-7 -34 l-10 2 l10 3 Z"/>
-        <path class="ink-thin" d="M1 -22 v6 M6 -22 v6" stroke="#ff6b57"/>
-        <circle class="blinkeye" cx="-4" cy="-34" r="1.2" fill="#4a3728"/>
-      </g>
+      <text x="0" y="-21" text-anchor="middle" font-family="var(--font)"
+            font-weight="700" font-size="16" fill="var(--coral)">W</text>
     </g>`,
 
   orangeTree: () => `
@@ -807,7 +802,7 @@ const SCENERY = [
   { lon:-16.20, lat:49.60, draw:"seaMonster", s:1.05, voice:"The Sea Monster" },
   { lon:  2.35, lat:48.86, draw:"eiffel", s:0.95, voice:"The Eiffel Tower" },
   { lon:-13.60, lat:47.40, draw:"whale", s:0.92, voice:"The Whale" },
-  { lon:-16.80, lat:46.00, draw:"dolphins", s:0.9, voice:"The Dolphins" },
+  { lon: -4.50, lat:45.90, draw:"dolphins", s:0.9, voice:"The Dolphins" },
   { lon:-13.80, lat:44.40, draw:"pirateShip", s:0.95, voice:"The Pirate Ship" },
   { lon:-16.40, lat:43.00, draw:"compass", s:0.95, voice:"The Compass Rose" },
   { lon:-13.40, lat:42.00, draw:"mermaid", s:0.9, voice:"The Mermaid" },
@@ -819,7 +814,7 @@ const SCENERY = [
   { lon: -5.55, lat:38.35, draw:"swimmingPool", s:1.2, voice:"The Swimming Pool" },
   { lon: -2.70, lat:37.30, draw:"portugueseCustardTart", s:0.8, voice:"The Portuguese Custard Tart" },
   { lon:-15.30, lat:37.70, draw:"crab", s:0.85, voice:"The Crab" },
-  { lon: -5.40, lat:35.60, draw:"camel", s:0.92, voice:"The Camel" },
+  { lon: -5.40, lat:35.00, draw:"camel", s:0.92, voice:"The Camel" },
   { lon:-13.30, lat:35.40, draw:"surfboard", s:1.0, voice:"The Surfer" },
 
   /* Benched (not on the map): A Cloud, The Other Cloud. */
@@ -1065,7 +1060,7 @@ function register(node, voice, x, y, artBox, sheetGroup){
     register(wrap, voice, x, y, { x:x+bb.x, y:y+bb.y, w:bb.width, h:bb.height }, null);
   };
   put(CONFIG.origin, "bigBen",     "Big Ben",   16, 15, "start");
-  put(CONFIG.dest,   "algarveArch", "The Stork", -23, 13, "end");
+  put(CONFIG.dest,   "algarveArch", "The W Hotel", -23, 13, "end");
 })();
 
 /* ===================================================================
@@ -1096,7 +1091,7 @@ const ADVENT = [
   ["The Crab"],               // day 15
   ["The Camel"],              // day 16
   ["The Surfer"],             // day 17
-  ["The Stork"]               // day 18 - arrival
+  ["The W Hotel"]             // day 18 - arrival
 ];
 const LAST_DAY = ADVENT.length - 1;
 ADVENT.forEach((names, day) => names.forEach(n => { VOICE_DAY[n] = day; }));
@@ -1584,11 +1579,11 @@ function render(){
     $("tagNum").textContent = "Boa viagem!";
     $("tagCap").textContent = "YOU'RE IN THE ALGARVE";
     $("tagSub").textContent = "Go on. Put the phone down.";
-    confetti();
   } else {
     $("tagNum").textContent = dd === 0 ? "Today!" : dd;
     $("tagCap").textContent = dd === 0 ? "IT'S TODAY" : (dd === 1 ? "DAY UNTIL THE ALGARVE" : "DAYS UNTIL THE ALGARVE");
     $("tagSub").textContent = `and ${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+    if (dd === 0) confetti();
   }
 
   /* voyage bar */
