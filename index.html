@@ -339,8 +339,8 @@ const CONFIG = {
   dest:   { name:"Algarve",   lat: 36.75, lon: -5.40 },
 
   travellers: [
-    { name:"David", accessory:"shades" },
-    { name:"Freya", accessory:"hat"    }
+    { name:"David", accessory:"hat", hatColour:"#4fff78" },
+    { name:"Freya", accessory:["hat", "flowers"], hatColour:"#ff4fa3" }
   ],
 
   map: { lonMin:-19, lonMax:9, latMin:34, latMax:58 },
@@ -1129,8 +1129,30 @@ function messageFor(name){
 /* ===================================================================
    THE CRAFT - two flamingos, one double lilo, facing west
    =================================================================== */
+/* one little 60s daisy: five round petals around a contrasting middle */
+function daisy(x, y, r, petal, middle){
+  let p = "";
+  for (let i = 0; i < 5; i++){
+    const a = i * Math.PI * 2 / 5;
+    p += `<circle cx="${(x + Math.sin(a) * r).toFixed(2)}" cy="${(y - Math.cos(a) * r).toFixed(2)}" r="${r * .85}" fill="${petal}"/>`;
+  }
+  return `<g stroke="#4a3728" stroke-width=".35">${p}<circle cx="${x}" cy="${y}" r="${r * .7}" fill="${middle}"/></g>`;
+}
+
+/* flower power on the wing: a green vine along it, studded with daisies */
+function flowerWing(cx){
+  const flowers = [
+    [cx+12,   -8.6, "#ff7a1a", "#ffe14d"], [cx+16.2, -10.2, "#ffffff", "#ffb000"],
+    [cx+20.2, -11.2, "#b56cff", "#ffe14d"], [cx+18.4, -6.4, "#ffe14d", "#ff7a1a"]
+  ];
+  return `<path d="M${cx+9} -7.4 Q${cx+15} -11.5 ${cx+22.5} -12.2 M${cx+15} -9.6 Q${cx+17} -7.4 ${cx+19.5} -6"
+                stroke="#3f9a3a" stroke-width="1" fill="none" stroke-linecap="round"/>
+          ${flowers.map(([x, y, petal, mid]) => daisy(x, y, 1.35, petal, mid)).join("")}`;
+}
+
 function flamingo(cx, t){
-  const hat = t.accessory === "hat", shades = t.accessory === "shades";
+  const has = a => [].concat(t.accessory).includes(a);
+  const hat = has("hat"), shades = has("shades"), flowers = has("flowers");
   return `
     <ellipse class="ink" cx="${cx}" cy="-7" rx="15" ry="10.5" fill="url(#liloG)"/>
     <ellipse cx="${cx+3}" cy="-9" rx="8" ry="5" fill="#ffd2e2" opacity=".6"/>
@@ -1143,7 +1165,9 @@ function flamingo(cx, t){
     ${shades ? `<rect class="ink-thin" x="${cx-24}" y="-41.8" width="7" height="4.4" rx="1.8" fill="#2b2b2b"/>
                 <path class="ink-thin" d="M${cx-17} -40.6 h2.4"/>` : ``}
     ${hat ? `<path class="ink-thin" d="M${cx-26} -42 L${cx-11} -42" stroke-width="2.4" fill="none"/>
-             <path class="ink-thin" d="M${cx-23} -42.4 a4.6 4.6 0 0 1 8.8 0 Z" fill="#ffc23c"/>` : ``}`;
+             <path class="ink-thin" d="M${cx-23} -42.4 a4.6 4.6 0 0 1 8.8 0 Z" style="fill:${t.hatColour || "#ffc23c"}"/>` : ``}
+    ${flowers ? `<circle class="ink-thin" cx="${cx-19.8}" cy="-39" r="2.1" style="fill:#ff9a3c;fill-opacity:.55"/>
+                 ${flowerWing(cx)}` : ``}`;
 }
 
 (function buildCraft(){
