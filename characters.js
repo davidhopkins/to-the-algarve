@@ -60,7 +60,7 @@ window.CHARACTERS = {
   "The Bull": { message: "¡Arriba, arriba! ¡Ándale, ándale! It's {days} to go. No bull..." },
 
   /* Day 9 · Thu 1 Oct */
-  "The Turtle": { message: "Wassup my duuudes! Be sure to catch some waves 🌊" },
+  "The Turtle": { message: "Wassup my duuudes! Looking forward to seeing you on your Kayaks 🌊" },
 
   /* Day 10 · Fri 2 Oct */
   "The Sun": { message: "I'm holding it at 24 degrees for you. Don't be late." },
@@ -69,10 +69,10 @@ window.CHARACTERS = {
   "The Sardines": { message: "Psst FreyBae... you don't like fish do you?" },
 
   /* Day 12 · Sun 4 Oct */
-  "The Tram": { message: "All aboard the Freyvid train!" },
+  "The Tram": { message: "All aboard the Freyvid express!" },
 
   /* Day 13 · Mon 5 Oct */
-  "The Swimming Pool": { message: "Get your goggles at the ready 🥽" },
+  "The Swimming Pool": { message: "Get yer goggles at the ready 🥽" },
 
   /* Day 14 · Tue 6 Oct */
   "The Portuguese Custard Tart": { message: "{percent}% done. Almost as flaky as me." },
