@@ -1195,6 +1195,11 @@ function flamingo(cx, t){
 const craft  = document.getElementById("craftPos");
 const splash = document.getElementById("craftSplash");
 const CRAFT_SCALE = 0.62;
+/* The lilo's outline in its own units, measured once before anything animates.
+   Firefox can report a live getBoundingClientRect() for this group several
+   times too big, which made the bubble flee from a phantom set of flamingos. */
+const CRAFT_BOX = craft.getBBox();
+let craftAt = [0, 0];                       // where moveCraft last put the lilo, viewBox units
 const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ===================================================================
@@ -1401,10 +1406,13 @@ function placeBubble(voice){
   [tagEl, voyageEl].forEach(n => {
     if (getComputedStyle(n).position === "absolute") blockers.push({ ...rel(n), weight:3 });
   });
-  blockers.push({ ...rel(craft), weight:6 });                       // the flamingos
+  const toPx = b => ({ x: ox + b.x * kx, y: oy + b.y * ky, w: b.w * kx, h: b.h * ky });
+  blockers.push({ ...toPx({ x: craftAt[0] + CRAFT_BOX.x * CRAFT_SCALE,          // the flamingos
+                            y: craftAt[1] + CRAFT_BOX.y * CRAFT_SCALE,
+                            w: CRAFT_BOX.width * CRAFT_SCALE, h: CRAFT_BOX.height * CRAFT_SCALE }),
+                  weight:6 });
 
   /* every other character, lightly - the bubble should prefer open water */
-  const toPx = b => ({ x: ox + b.x * kx, y: oy + b.y * ky, w: b.w * kx, h: b.h * ky });
   for (const other of CAST){
     if (other === voice || !VOICE_BOX[other]) continue;
     blockers.push({ ...toPx(VOICE_BOX[other]), weight:0.15 });
@@ -1587,6 +1595,7 @@ function moveCraft(){
     lift = Math.sin(ms / 1800 * Math.PI) * 1.8;
     splash.setAttribute("opacity", (0.34 + 0.3 * (1 + Math.sin(ms / 950 * Math.PI)) / 2).toFixed(3));
   }
+  craftAt = [pt.x, pt.y + lift];
   craft.setAttribute("transform",
     `translate(${pt.x.toFixed(2)} ${(pt.y + lift).toFixed(2)}) scale(${CRAFT_SCALE}) rotate(${tilt.toFixed(2)})`);
 }
