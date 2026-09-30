@@ -723,45 +723,35 @@ const DRAW = {
       <ellipse cx="1" cy="-7" rx="1.8" ry="1.1" fill="#b0703a"/>
     </g>`,
 
-  surfboard: () => `
+  /* A tandem kayak, two paddlers facing west like the lilo: Freya up front in
+     her pink hat, David behind in his. Bodies sit behind the deck; paddles and
+     arms are drawn over it, mid-stroke, with the low blade dipping in. */
+  kayak: () => {
+    const body = (x, vest, hat) => `
+      <path class="ink" fill="${vest}" d="M${x - 4} 2 v-9 q4 -3 8 0 V2 Z"/>
+      <circle class="ink" cx="${x}" cy="-11.5" r="3.8" fill="#ffd9b8"/>
+      <circle cx="${x - 1.6}" cy="-11.8" r=".75" fill="#4a3728"/>
+      <path class="ink-thin" fill="${hat}" d="M${x - 6} -14.2 q6 -1.6 12 0 q-6 1.6 -12 0 Z"/>
+      <path class="ink-thin" fill="${hat}" d="M${x - 3.4} -14.4 q0 -4.4 3.4 -4.4 q3.4 0 3.4 4.4 Z"/>`;
+    const paddle = x => `
+      <path class="ink-thin" d="M${x + 11} -16 L${x - 11} 7" stroke="#7d4f1d" stroke-width="1.8"/>
+      <ellipse class="ink-thin" cx="${x + 11}" cy="-16" rx="4.2" ry="1.8" fill="#ff6b57" transform="rotate(-46 ${x + 11} -16)"/>
+      <ellipse class="ink-thin" cx="${x - 11}" cy="7" rx="4.2" ry="1.8" fill="#ff6b57" transform="rotate(-46 ${x - 11} 7)"/>
+      <path class="ink-thin" d="M${x - 3} -6 L${x + 3.5} -8.5 M${x + 3} -6 L${x - 3.5} -1" stroke-width="1.8"/>`;
+    return `
     <g class="drift">
-      <defs>
-        <linearGradient id="boardGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#e2e2f2"/>
-          <stop offset="1" stop-color="#c2c2de"/>
-        </linearGradient>
-      </defs>
-      <g transform="rotate(-30)">
-        <path class="ink" fill="url(#boardGrad)"
-              d="M34 0 C22 -9 -6 -11 -27 -9 C-34 -8 -34 8 -27 9 C-6 11 22 9 34 0 Z"/>
-        <path class="ink-thin" d="M-30 0 H31" stroke="#a7a7c8" stroke-width="1.4"/>
-        <g>
-          <rect x="-29" y="-6" width="5" height="5" fill="#ffc23c"/>
-          <rect x="-23" y="0"  width="5" height="5" fill="#5aa7d8"/>
-          <rect x="-23" y="-7" width="5" height="5" fill="#3fbf8f"/>
-          <rect x="-17" y="-3" width="5" height="5" fill="#a8d946"/>
-          <rect x="-17" y="3"  width="5" height="5" fill="#ffc23c"/>
-          <rect x="-11" y="-6" width="5" height="5" fill="#34c0cb"/>
-          <rect x="-11" y="1"  width="5" height="5" fill="#3fbf8f"/>
-          <rect x="-5"  y="-3" width="5" height="5" fill="#5aa7d8"/>
-          <rect x="-5"  y="3"  width="5" height="5" fill="#a8d946"/>
-          <rect x="1"   y="-5" width="5" height="5" fill="#3fbf8f"/>
-          <rect x="1"   y="1"  width="5" height="5" fill="#ffc23c"/>
-        </g>
-      </g>
-      <g transform="translate(3 -3) rotate(-6)">
-        <path class="ink-thin" d="M0 -6 L-6 3 M1 -6 L8 1" stroke-width="2.2"/>
-        <path class="ink" fill="#ff6b57" d="M-3.4 -8 h7 l-1 4 h-5 Z"/>
-        <path class="ink-thin" d="M0 -14 v6" stroke-width="2.2"/>
-        <path class="ink-thin" d="M0 -12 L-11 -16 M0 -12 L11 -19" stroke-width="2.2"/>
-        <circle class="ink" cx="0" cy="-18" r="4.4" fill="#ffd9b8"/>
-        <path class="ink-thin" d="M-4.2 -20.5 q3 -3 5 0" stroke-width="1.6"/>
-        <rect x="-3.6" y="-19.4" width="3" height="2.1" rx="0.6" fill="#2b2b2b"/>
-        <rect x="0.6" y="-19.4" width="3" height="2.1" rx="0.6" fill="#2b2b2b"/>
-        <path class="ink-thin" d="M-0.6 -18.4 h1.2" stroke-width="1"/>
-        <path class="ink-thin" d="M-1.8 -16 q1.8 2 3.6 0 Z" fill="#4a3728"/>
-      </g>
-    </g>`,
+      <ellipse cx="0" cy="7" rx="38" ry="4.6" fill="#0b6a72" opacity=".26"/>
+      <path class="ink-thin" d="M-46 6 q5 -4 10 0 M36 7 q5 -4 10 0" stroke="#eafcff"/>
+      ${body(-11, "#34c0cb", "#ff7ba8")}
+      ${body( 11, "#3fbf8f", "#e8c9a0")}
+      <path class="ink" fill="#ffc23c" d="M-39 -3 Q-20 7 0 7 Q20 7 39 -3 Q20 1.5 0 1.5 Q-20 1.5 -39 -3 Z"/>
+      <path class="ink-thin" d="M-30 1.6 Q0 6.4 30 1.6" stroke="#ff6b57" stroke-width="1.6"/>
+      <ellipse class="ink-thin" cx="-11" cy="1.6" rx="6.5" ry="1.6" fill="#4a3728"/>
+      <ellipse class="ink-thin" cx="11" cy="1.6" rx="6.5" ry="1.6" fill="#4a3728"/>
+      ${paddle(-11)}
+      ${paddle(11)}
+    </g>`;
+  },
 
   swimmingPool: () => `
     <g class="drift">
@@ -813,10 +803,10 @@ const SCENERY = [
   { lon:-13.60, lat:39.10, draw:"sardines", s:1.0, voice:"The Sardines" },
   { lon: -8.70, lat:39.70, draw:"tram", s:0.8, voice:"The Tram" },
   { lon: -5.55, lat:38.35, draw:"swimmingPool", s:1.2, voice:"The Swimming Pool" },
-  { lon: -2.70, lat:37.30, draw:"portugueseCustardTart", s:0.8, voice:"The Portuguese Custard Tart" },
+  { lon: -8.42, lat:37.42, draw:"portugueseCustardTart", s:0.8, voice:"The Portuguese Custard Tart" },
   { lon:-15.30, lat:37.70, draw:"crab", s:0.85, voice:"The Crab" },
   { lon: -5.40, lat:35.00, draw:"camel", s:0.92, voice:"The Camel" },
-  { lon:-13.30, lat:35.40, draw:"surfboard", s:1.0, voice:"The Surfer" },
+  { lon:-13.30, lat:35.40, draw:"kayak", s:1.0, voice:"The Kayakers" },
 
   /* Benched (not on the map): A Cloud, The Other Cloud. */
 ];
@@ -1088,10 +1078,10 @@ const ADVENT = [
   ["The Sardines"],           // day 11
   ["The Tram"],               // day 12
   ["The Swimming Pool"],      // day 13
-  ["The Portuguese Custard Tart"],  // day 14
-  ["The Crab"],               // day 15
-  ["The Camel"],              // day 16
-  ["The Surfer"],             // day 17
+  ["The Crab"],               // day 14
+  ["The Portuguese Custard Tart"],  // day 15
+  ["The Kayakers"],           // day 16
+  ["The Camel"],              // day 17
   ["The W Hotel"]             // day 18 - arrival
 ];
 const LAST_DAY = ADVENT.length - 1;

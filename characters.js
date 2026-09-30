@@ -75,16 +75,16 @@ window.CHARACTERS = {
   "The Swimming Pool": { message: "Get yer goggles at the ready 🥽" },
 
   /* Day 14 · Tue 6 Oct */
-  "The Portuguese Custard Tart": { message: "{percent}% done. Almost as flaky as me." },
-
-  /* Day 15 · Wed 7 Oct */
   "The Crab": { message: "Nothing wrong with a bit of side-eye 👀" },
 
+  /* Day 15 · Wed 7 Oct */
+  "The Portuguese Custard Tart": { message: "{percent}% done. Almost as flaky as me." },
+
   /* Day 16 · Thu 8 Oct */
-  "The Camel": { message: "OI! {both}. You're nearly there. I can see it from where I'm standing." },
+  "The Kayakers": { message: "Just {days} to go, then it's kayaks for real 🛶" },
 
   /* Day 17 · Fri 9 Oct */
-  "The Surfer": { message: "Wassup my duuudes! Have you seen my 🐢?" },
+  "The Camel": { message: "I can see you! You're very nearly there!" },
 
   /* Day 18 · Sat 10 Oct · arrival */
   "The W Hotel": { message: "Some champers waiting for you at check-in..." }
