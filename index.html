@@ -1384,12 +1384,17 @@ function placeBubble(voice){
   const [vx, vy] = pos;
   const cw = chartEl.clientWidth, ch = chartEl.clientHeight;
   const w = bubble.offsetWidth, h = bubble.offsetHeight;
-  const px = vx / VB_W * cw, py = vy / VB_H * ch;
+  /* The map sits inside the chart's padding, so viewBox units map onto the
+     svg's own box, not the chart's - otherwise everything lands a few px off. */
+  const chartBox = chartEl.getBoundingClientRect();
+  const svgBox = svg.getBoundingClientRect();
+  const ox = svgBox.x - chartBox.x, oy = svgBox.y - chartBox.y;
+  const kx = svgBox.width / VB_W, ky = svgBox.height / VB_H;
+  const px = ox + vx * kx, py = oy + vy * ky;
 
   /* Things the bubble should not cover, most important first. The flamingos and
      the speaker matter more than scenery, so they carry a heavier weight and get
      sacrificed last. */
-  const chartBox = chartEl.getBoundingClientRect();
   const rel = n => { const b = n.getBoundingClientRect();
                      return { x:b.x - chartBox.x, y:b.y - chartBox.y, w:b.width, h:b.height }; };
   const blockers = [];
@@ -1399,8 +1404,7 @@ function placeBubble(voice){
   blockers.push({ ...rel(craft), weight:6 });                       // the flamingos
 
   /* every other character, lightly - the bubble should prefer open water */
-  const toPx = b => ({ x: b.x / VB_W * cw, y: b.y / VB_H * ch,
-                       w: b.w / VB_W * cw, h: b.h / VB_H * ch });
+  const toPx = b => ({ x: ox + b.x * kx, y: oy + b.y * ky, w: b.w * kx, h: b.h * ky });
   for (const other of CAST){
     if (other === voice || !VOICE_BOX[other]) continue;
     blockers.push({ ...toPx(VOICE_BOX[other]), weight:0.15 });
@@ -1445,7 +1449,10 @@ function placeBubble(voice){
     const drift = Math.min(...prefs.map(pr => Math.abs(y0 - pr)));
     for (const x0 of xs){
       const x = Math.max(8, Math.min(x0, cw - w - 8));
-      const cost = overlap(x, y0) + drift * 10 + tailErr(x) * 8;
+      /* Drift grows quadratically: a few px to dodge something is fine, but a
+         bubble hovering well clear of its speaker reads as someone else talking
+         (the sun's bubble used to jump over the flamingos rather than sit below). */
+      const cost = overlap(x, y0) + drift * 10 + drift * drift + tailErr(x) * 8;
       if (!best || cost < best.cost) best = { x, y:y0, cost, drift, above: y0 > sp.y };
     }
   }
