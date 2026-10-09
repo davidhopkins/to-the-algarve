@@ -1611,10 +1611,12 @@ function render(){
     $("tagCap").textContent = "YOU'RE IN THE ALGARVE";
     $("tagSub").textContent = "Go on. Put the phone down.";
   } else {
-    $("tagNum").textContent = dd === 0 ? "Today!" : dd;
-    $("tagCap").textContent = dd === 0 ? "IT'S TODAY" : (dd === 1 ? "DAY UNTIL THE ALGARVE" : "DAYS UNTIL THE ALGARVE");
+    /* "Today" only on the calendar day of departure, not once <24h remain */
+    const today = dd === 0 && dayIndex(t) >= dayIndex(DEPART);
+    $("tagNum").textContent = today ? "Today!" : dd;
+    $("tagCap").textContent = today ? "IT'S TODAY" : (dd === 1 ? "DAY UNTIL THE ALGARVE" : "DAYS UNTIL THE ALGARVE");
     $("tagSub").textContent = `and ${pad(hh)}:${pad(mm)}:${pad(ss)}`;
-    if (dd === 0) confetti();
+    if (today) confetti();
   }
 
   /* voyage bar */
